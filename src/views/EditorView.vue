@@ -235,7 +235,7 @@ function handleExport(type: string) {
   try {
     switch (type) {
       case 'preview':
-        downloadImage(exportPreviewImage(result), `${name}-preview.png`)
+        downloadImage(exportPreviewImage(result, 16, store.beadShape), `${name}-preview.png`)
         break
       case 'template':
         downloadImage(exportTemplateImage(result), `${name}-template.png`)

@@ -1,8 +1,8 @@
-import type { ConvertResult, BeadColor } from '@/types'
+import type { ConvertResult, BeadColor, BeadShape } from '@/types'
 import { hexToRgb } from './palette'
 
 /** 导出像素预览图 (带网格) */
-export function exportPreviewImage(result: ConvertResult, pixelSize: number = 16): string {
+export function exportPreviewImage(result: ConvertResult, pixelSize: number = 16, beadShape: BeadShape = 'round'): string {
   const { width, height, pixels } = result
   const canvas = document.createElement('canvas')
   canvas.width = width * pixelSize
@@ -13,20 +13,25 @@ export function exportPreviewImage(result: ConvertResult, pixelSize: number = 16
   ctx.fillStyle = '#FFFFFF'
   ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-  // 绘制圆形豆子
+  // 绘制豆子
+  const isRound = beadShape === 'round'
   const beadRadius = (pixelSize - 2) / 2
   for (const pixel of pixels) {
-    const cx = pixel.x * pixelSize + pixelSize / 2
-    const cy = pixel.y * pixelSize + pixelSize / 2
-    ctx.beginPath()
-    ctx.arc(cx, cy, beadRadius, 0, Math.PI * 2)
-    ctx.fillStyle = pixel.color
-    ctx.fill()
-    // 高光
-    ctx.beginPath()
-    ctx.arc(cx - beadRadius * 0.15, cy - beadRadius * 0.15, beadRadius * 0.6, 0, Math.PI * 2)
-    ctx.fillStyle = 'rgba(255,255,255,0.15)'
-    ctx.fill()
+    if (isRound) {
+      const cx = pixel.x * pixelSize + pixelSize / 2
+      const cy = pixel.y * pixelSize + pixelSize / 2
+      ctx.beginPath()
+      ctx.arc(cx, cy, beadRadius, 0, Math.PI * 2)
+      ctx.fillStyle = pixel.color
+      ctx.fill()
+      ctx.beginPath()
+      ctx.arc(cx - beadRadius * 0.15, cy - beadRadius * 0.15, beadRadius * 0.6, 0, Math.PI * 2)
+      ctx.fillStyle = 'rgba(255,255,255,0.15)'
+      ctx.fill()
+    } else {
+      ctx.fillStyle = pixel.color
+      ctx.fillRect(pixel.x * pixelSize + 1, pixel.y * pixelSize + 1, pixelSize - 2, pixelSize - 2)
+    }
   }
 
   // 绘制网格线

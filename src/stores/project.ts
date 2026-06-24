@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { ConvertParams, ConvertResult, GridSize, DitherAlgorithm, PaletteBrand, Layer } from '@/types'
+import type { ConvertParams, ConvertResult, GridSize, DitherAlgorithm, PaletteBrand, BeadShape, Layer } from '@/types'
 import { GRID_SIZES } from '@/core/converter'
 import { hexToRgb, rgbToHex } from '@/core/palette'
 
@@ -27,6 +27,7 @@ export const useProjectStore = defineStore('project', () => {
   const blur = ref(0)
   const dither = ref<DitherAlgorithm>('none')
   const palette = ref<PaletteBrand>('none')
+  const beadShape = ref<BeadShape>('round')
 
   // ===== 源图片 =====
   const sourceImage = ref<string | null>(null)
@@ -59,6 +60,7 @@ export const useProjectStore = defineStore('project', () => {
     blur: blur.value,
     dither: dither.value,
     palette: palette.value,
+    beadShape: beadShape.value,
   }))
 
   const beadCount = computed(() => {
@@ -177,11 +179,12 @@ export const useProjectStore = defineStore('project', () => {
     blur.value = 0
     dither.value = 'none'
     palette.value = 'none'
+    beadShape.value = 'round'
   }
 
   return {
     // 状态
-    gridSize, colorCount, brightness, contrast, saturation, blur, dither, palette,
+    gridSize, colorCount, brightness, contrast, saturation, blur, dither, palette, beadShape,
     sourceImage, sourceFileName, result, isConverting,
     editorPixels, editorWidth, editorHeight,
     // 图层

@@ -12,6 +12,15 @@
       />
     </div>
 
+    <!-- 豆子形状 -->
+    <div class="param-group">
+      <label class="param-label">豆子形状</label>
+      <n-radio-group v-model:value="store.beadShape" size="small">
+        <n-radio-button value="round">⚪ 圆形</n-radio-button>
+        <n-radio-button value="square">⬛ 方形</n-radio-button>
+      </n-radio-group>
+    </div>
+
     <!-- 颜色数量 -->
     <div class="param-group">
       <label class="param-label">颜色数量: {{ store.colorCount }}</label>
@@ -105,10 +114,9 @@ defineEmits<{
 
 const store = useProjectStore()
 
-const gridOptions = GRID_SIZES.map(s => ({
-  value: s.name,
-  label: s.label,
-}))
+const gridOptions = GRID_SIZES
+  .filter(s => s.name !== 'heart')
+  .map(s => ({ value: s.name, label: s.label }))
 
 const paletteOptions = [
   { label: '🎨 纯色模式 (无调色盘限制)', value: 'none' },

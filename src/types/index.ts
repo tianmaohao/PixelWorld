@@ -20,6 +20,9 @@ export interface BeadColor {
 /** 抖动算法 */
 export type DitherAlgorithm = 'none' | 'floyd-steinberg' | 'atkinson'
 
+/** 豆子形状 */
+export type BeadShape = 'round' | 'square'
+
 /** 转换参数 */
 export interface ConvertParams {
   gridSize: GridSize
@@ -30,6 +33,7 @@ export interface ConvertParams {
   blur: number
   dither: DitherAlgorithm
   palette: PaletteBrand
+  beadShape: BeadShape
 }
 
 /** 像素点 */

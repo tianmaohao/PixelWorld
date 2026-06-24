@@ -92,7 +92,7 @@ async function handleExport(type: 'preview' | 'template' | 'colorblock' | 'pdf')
   try {
     switch (type) {
       case 'preview': {
-        const dataUrl = exportPreviewImage(result.value)
+        const dataUrl = exportPreviewImage(result.value, 16, store.beadShape)
         downloadImage(dataUrl, `${filename}-preview.png`)
         message.success('预览图已导出')
         break

@@ -94,7 +94,7 @@ function doExport(e: MouseEvent, type: string) {
   const result = buildResult()
   const name = `pixelworld-${Date.now()}`
   switch (type) {
-    case 'preview': downloadImage(exportPreviewImage(result), `${name}-preview.png`); break
+    case 'preview': downloadImage(exportPreviewImage(result, 16, store.beadShape), `${name}-preview.png`); break
     case 'template': downloadImage(exportTemplateImage(result), `${name}-template.png`); break
     case 'colorblock': downloadImage(exportColorBlockImage(result), `${name}-colorblock.png`); break
     case 'pdf': exportPDF(result, 'PixelWorld 模版'); break
