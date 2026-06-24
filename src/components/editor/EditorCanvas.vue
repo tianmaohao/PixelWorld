@@ -16,15 +16,24 @@
       :style="canvasStyle"
     />
 
-    <div class="coord-info" v-if="hoverCoord">
-      X: {{ hoverCoord.x }}, Y: {{ hoverCoord.y }}
-    </div>
+    <!-- 覆盖层：始终贴在容器四角，不受画布缩放平移影响 -->
+    <div style="position:absolute;inset:0;pointer-events:none;z-index:10;">
+      <div v-if="hoverCoord" style="position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,0.7);color:#fff;padding:3px 10px;border-radius:6px;font-size:12px;font-family:monospace;">
+        X: {{ hoverCoord.x }}, Y: {{ hoverCoord.y }}
+      </div>
 
-    <div class="zoom-info">
-      {{ Math.round(zoom * 100) }}%
-    </div>
+      <div style="position:absolute;bottom:8px;right:44px;background:rgba(0,0,0,0.7);color:#fff;padding:3px 10px;border-radius:6px;font-size:12px;font-family:monospace;">
+        {{ Math.round(zoom * 100) }}%
+      </div>
 
-    <button class="fit-btn" title="居中 (双击画布)" @click="fitToView">⊕</button>
+      <button
+        style="position:absolute;bottom:8px;right:8px;width:32px;height:32px;border:none;border-radius:10px;background:rgba(0,0,0,0.6);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;pointer-events:auto;"
+        title="居中 (双击画布)"
+        @click="fitToView"
+        @mouseenter="($event.target as HTMLElement).style.background='rgba(0,0,0,0.85)'"
+        @mouseleave="($event.target as HTMLElement).style.background='rgba(0,0,0,0.6)'"
+      >⊕</button>
+    </div>
   </div>
 </template>
 
@@ -386,61 +395,10 @@ defineExpose({ fitToView, getCanvas: () => canvasRef.value })
 .editor-canvas-container {
   position: relative;
   flex: 1;
+  min-height: 0;
   overflow: hidden;
   background: #E8E8E8;
   border-radius: $radius-lg;
   user-select: none;
-}
-
-.editor-canvas {
-  // 无 transition，拖拽时流畅
-}
-
-.coord-info {
-  position: absolute;
-  bottom: $spacing-sm;
-  left: $spacing-sm;
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 3px 10px;
-  border-radius: $radius-sm;
-  font-size: $font-size-xs;
-  font-family: monospace;
-  pointer-events: none;
-}
-
-.zoom-info {
-  position: absolute;
-  bottom: $spacing-sm;
-  right: 44px;
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 3px 10px;
-  border-radius: $radius-sm;
-  font-size: $font-size-xs;
-  font-family: monospace;
-  pointer-events: none;
-}
-
-.fit-btn {
-  position: absolute;
-  bottom: $spacing-sm;
-  right: $spacing-sm;
-  width: 32px;
-  height: 32px;
-  border: none;
-  border-radius: $radius-md;
-  background: rgba(0, 0, 0, 0.6);
-  color: white;
-  font-size: 18px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background $transition-fast;
-
-  &:hover {
-    background: rgba(0, 0, 0, 0.8);
-  }
 }
 </style>

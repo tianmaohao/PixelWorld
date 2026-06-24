@@ -9,7 +9,6 @@
       <canvas
         ref="canvasRef"
         class="preview-canvas"
-        :style="{ width: displayWidth + 'px', height: displayHeight + 'px' }"
         @mousedown="startPan"
         @mousemove="onPan"
         @mouseup="endPan"
@@ -187,8 +186,9 @@ function updateTooltip(e: MouseEvent) {
   if (!canvas || !r) return
 
   const rect = canvas.getBoundingClientRect()
-  const x = Math.floor((e.clientX - rect.left) / (pixelSize * zoom.value))
-  const y = Math.floor((e.clientY - rect.top) / (pixelSize * zoom.value))
+  // getBoundingClientRect 已包含 transform，直接算网格坐标
+  const x = Math.floor((e.clientX - rect.left) / (rect.width / r.width))
+  const y = Math.floor((e.clientY - rect.top) / (rect.height / r.height))
 
   if (x < 0 || x >= r.width || y < 0 || y >= r.height) {
     hoveredColor.value = null

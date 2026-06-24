@@ -116,7 +116,7 @@ export function exportTemplateImage(result: ConvertResult, pixelSize: number = 2
       ctx.fillStyle = brightness > 128 ? '#333333' : '#FFFFFF'
 
       // 找到对应的颜色编号
-      const beadColor = result.beadColors.find(bc => bc.hex === color)
+      const beadColor = result.beadColors.find(bc => bc.hex.toUpperCase() === color.toUpperCase())
       if (beadColor && pixelSize >= 16) {
         ctx.fillText(beadColor.code, px + pixelSize / 2, py + pixelSize / 2)
       }

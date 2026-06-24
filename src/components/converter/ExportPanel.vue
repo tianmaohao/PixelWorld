@@ -84,7 +84,7 @@ const router = useRouter()
 
 import { computed } from 'vue'
 
-function handleExport(type: 'preview' | 'template' | 'colorblock' | 'pdf') {
+async function handleExport(type: 'preview' | 'template' | 'colorblock' | 'pdf') {
   if (!result.value) return
 
   const filename = `pixelworld-${Date.now()}`
@@ -110,7 +110,7 @@ function handleExport(type: 'preview' | 'template' | 'colorblock' | 'pdf') {
         break
       }
       case 'pdf': {
-        exportPDF(result.value, store.sourceFileName || 'PixelWorld 模版')
+        await exportPDF(result.value, store.sourceFileName || 'PixelWorld 模版')
         message.success('PDF 已导出')
         break
       }

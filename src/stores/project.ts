@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { ConvertParams, ConvertResult, GridSize, DitherAlgorithm, PaletteBrand, Layer } from '@/types'
 import { GRID_SIZES } from '@/core/converter'
+import { hexToRgb, rgbToHex } from '@/core/palette'
 
 let layerIdCounter = 0
 
@@ -69,9 +70,26 @@ export const useProjectStore = defineStore('project', () => {
   function compositeLayers() {
     editorPixels.value.clear()
     for (const layer of layers.value) {
-      if (!layer.visible) continue
+      if (!layer.visible || layer.opacity <= 0) continue
       for (const [key, color] of layer.pixels) {
-        editorPixels.value.set(key, color)
+        // 透明度 < 1 时：如果下层已有颜色则混合，否则直接覆盖
+        if (layer.opacity < 1) {
+          const existing = editorPixels.value.get(key)
+          if (existing) {
+            // 简单 alpha 混合
+            const [er, eg, eb] = hexToRgb(existing)
+            const [nr, ng, nb] = hexToRgb(color)
+            const a = layer.opacity
+            const r = Math.round(er * (1 - a) + nr * a)
+            const g = Math.round(eg * (1 - a) + ng * a)
+            const b = Math.round(eb * (1 - a) + nb * a)
+            editorPixels.value.set(key, rgbToHex(r, g, b))
+          } else {
+            editorPixels.value.set(key, color)
+          }
+        } else {
+          editorPixels.value.set(key, color)
+        }
       }
     }
   }

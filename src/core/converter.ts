@@ -119,6 +119,19 @@ function applyImageAdjustments(
   width: number, height: number,
   params: Pick<ConvertParams, 'brightness' | 'contrast' | 'saturation' | 'blur'>
 ): void {
+  // 模糊：使用 Canvas filter 在获取像素数据之前应用
+  if (params.blur > 0) {
+    ctx.filter = `blur(${params.blur}px)`
+    const tempCanvas = document.createElement('canvas')
+    tempCanvas.width = width
+    tempCanvas.height = height
+    const tempCtx = tempCanvas.getContext('2d')!
+    tempCtx.drawImage(ctx.canvas, 0, 0)
+    ctx.clearRect(0, 0, width, height)
+    ctx.drawImage(tempCanvas, 0, 0)
+    ctx.filter = 'none'
+  }
+
   const imageData = ctx.getImageData(0, 0, width, height)
   const data = imageData.data
   const brightness = params.brightness * 2.55

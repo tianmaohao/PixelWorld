@@ -3,8 +3,8 @@
     <div
       class="image-uploader"
       :class="{ 'has-image': !!previewUrl, 'drag-over': isDragOver }"
-      @dragover.prevent="isDragOver = true"
-      @dragleave="isDragOver = false"
+      @dragover.prevent="onDragEnter"
+      @dragleave="onDragLeave"
       @drop.prevent="handleDrop"
       @click="triggerFileInput"
     >
@@ -89,12 +89,26 @@ const fileInput = ref<HTMLInputElement>()
 const previewUrl = ref('')
 const originalUrl = ref('')
 const isDragOver = ref(false)
+const dragCounter = ref(0)
 const isProcessing = ref(false)
 const processingStage = ref('')
 const processingProgress = ref(0)
 const bgRemoveEnabled = ref(true)
 const bgRemoved = ref(false)
 const currentFileName = ref('')
+
+function onDragEnter() {
+  dragCounter.value++
+  isDragOver.value = true
+}
+
+function onDragLeave() {
+  dragCounter.value--
+  if (dragCounter.value <= 0) {
+    dragCounter.value = 0
+    isDragOver.value = false
+  }
+}
 
 const MAX_SIZE = 10 * 1024 * 1024
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
