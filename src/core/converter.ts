@@ -229,13 +229,13 @@ export async function convertImage(
   const resizedCanvas = smartResize(img, width, height)
 
   // 2. 形状蒙版
-  if (params.gridSize.name === 'circle' || params.gridSize.name === 'heart') {
+  const hasShape = params.gridSize.name === 'circle' || params.gridSize.name === 'heart'
+  if (hasShape) {
     applyShapeMask(resizedCanvas.getContext('2d')!, width, height, params.gridSize.name as 'circle' | 'heart')
   }
 
-  // 3. 调整参数
-  const { ctx } = createOffscreenCanvas(width, height)
-  ctx.drawImage(resizedCanvas, 0, 0)
+  // 3. 调整参数 — 直接在蒙版后的 canvas 上操作，避免 drawImage 丢失 alpha
+  const ctx = resizedCanvas.getContext('2d')!
   applyImageAdjustments(ctx, width, height, params)
 
   // 4. 获取像素数据
