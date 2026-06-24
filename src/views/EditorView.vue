@@ -32,13 +32,6 @@
         @color-picked="handleColorPicked"
         @modified="saveHistory"
       />
-
-      <div v-if="!store.result && store.editorPixels.size === 0" class="empty-state">
-        <div class="empty-icon">✏️</div>
-        <h3>编辑器为空</h3>
-        <p>请先在图片转换页面生成像素图案，或直接在此绘制</p>
-        <n-button type="primary" @click="$router.push('/convert')">🎨 去转换图片</n-button>
-      </div>
     </div>
 
     <!-- 右侧面板 -->
@@ -107,7 +100,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { NButton, NModal, useMessage } from 'naive-ui'
+import { NModal, useMessage } from 'naive-ui'
 import { useRouter } from 'vue-router'
 import { useProjectStore } from '@/stores/project'
 import type { EditorTool } from '@/types'
@@ -276,24 +269,6 @@ function handleExportPDF() {
   position: relative;
   min-width: 0;
   min-height: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.empty-state {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: rgba($color-bg-white, 0.9);
-  border-radius: $radius-lg;
-  z-index: 5;
-  .empty-icon { font-size: 64px; margin-bottom: $spacing-md; }
-  h3 { font-size: $font-size-xl; margin-bottom: $spacing-sm; }
-  p { color: $color-text-secondary; margin-bottom: $spacing-lg; }
 }
 
 .editor-sidebar {
