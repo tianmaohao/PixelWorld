@@ -106,11 +106,14 @@ const TOOL_CURSORS = computed(() => ({
     </svg>`, 2, 21
   ),
   eraser: makeToolCursor(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-      <rect x="4" y="8" width="16" height="10" rx="2" fill="#FB923C" stroke="#fff" stroke-width="1"/>
-      <rect x="4" y="8" width="16" height="5" rx="2" fill="#F97316" stroke="#fff" stroke-width="0.5"/>
-      <line x1="10" y1="12" x2="14" y2="12" stroke="#fff" stroke-width="1" opacity="0.6"/>
-    </svg>`, 12, 12
+    `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
+      <g transform="rotate(-35, 14, 14)">
+        <rect x="6" y="6" width="16" height="10" rx="1.5" fill="#FB923C" stroke="#fff" stroke-width="0.8"/>
+        <rect x="6" y="6" width="16" height="4" rx="1.5" fill="#F97316" stroke="#fff" stroke-width="0.5"/>
+        <line x1="11" y1="10" x2="17" y2="10" stroke="#fff" stroke-width="0.8" opacity="0.5"/>
+      </g>
+      <circle cx="5" cy="22" r="1.5" fill="#F43F5E" stroke="#fff" stroke-width="0.8"/>
+    </svg>`, 5, 22
   ),
   picker: makeToolCursor(
     `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
