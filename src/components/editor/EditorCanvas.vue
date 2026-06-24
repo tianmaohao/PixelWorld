@@ -120,16 +120,30 @@ function drawCanvas() {
 
     for (const [key, color] of layer.pixels) {
       const [x, y] = key.split(',').map(Number)
+      const cx = x * PIXEL_SIZE + PIXEL_SIZE / 2
+      const cy = y * PIXEL_SIZE + PIXEL_SIZE / 2
+      const r = (PIXEL_SIZE - 2) / 2
 
       if (props.highlightColor && color === props.highlightColor) {
+        // 高亮：画圆 + 红色边框
+        ctx.beginPath()
+        ctx.arc(cx, cy, r, 0, Math.PI * 2)
         ctx.fillStyle = color
-        ctx.fillRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE)
+        ctx.fill()
         ctx.strokeStyle = '#FF0000'
         ctx.lineWidth = 2
-        ctx.strokeRect(x * PIXEL_SIZE + 1, y * PIXEL_SIZE + 1, PIXEL_SIZE - 2, PIXEL_SIZE - 2)
+        ctx.stroke()
       } else {
+        // 正常豆子
+        ctx.beginPath()
+        ctx.arc(cx, cy, r, 0, Math.PI * 2)
         ctx.fillStyle = color
-        ctx.fillRect(x * PIXEL_SIZE + 1, y * PIXEL_SIZE + 1, PIXEL_SIZE - 2, PIXEL_SIZE - 2)
+        ctx.fill()
+        // 高光
+        ctx.beginPath()
+        ctx.arc(cx - r * 0.15, cy - r * 0.15, r * 0.6, 0, Math.PI * 2)
+        ctx.fillStyle = 'rgba(255,255,255,0.15)'
+        ctx.fill()
       }
     }
   }

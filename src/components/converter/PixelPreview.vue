@@ -98,15 +98,21 @@ async function drawCanvas() {
   ctx.fillStyle = '#FFFFFF'
   ctx.fillRect(0, 0, w, h)
 
-  // 绘制像素
+  // 绘制像素（圆形豆子）
+  const beadRadius = (pixelSize - 2) / 2
   for (const pixel of r.pixels) {
+    const cx = pixel.x * pixelSize + pixelSize / 2
+    const cy = pixel.y * pixelSize + pixelSize / 2
+    // 外圈（深色描边，模拟豆子轮廓）
+    ctx.beginPath()
+    ctx.arc(cx, cy, beadRadius, 0, Math.PI * 2)
     ctx.fillStyle = pixel.color
-    ctx.fillRect(
-      pixel.x * pixelSize + 1,
-      pixel.y * pixelSize + 1,
-      pixelSize - 2,
-      pixelSize - 2
-    )
+    ctx.fill()
+    // 内圈高光（微质感）
+    ctx.beginPath()
+    ctx.arc(cx - beadRadius * 0.15, cy - beadRadius * 0.15, beadRadius * 0.6, 0, Math.PI * 2)
+    ctx.fillStyle = 'rgba(255,255,255,0.15)'
+    ctx.fill()
   }
 
   // 网格线
