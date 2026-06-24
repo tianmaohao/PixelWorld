@@ -1,42 +1,42 @@
-// ===== 主题色 =====
-$color-primary: #FF6B35;
-$color-primary-light: #FF8F65;
-$color-primary-dark: #E55A25;
+// ===== 主题色 - 温暖珊瑚 =====
+$color-primary: #F43F5E;
+$color-primary-light: #FB7185;
+$color-primary-dark: #E11D48;
 
-$color-secondary: #4ECDC4;
-$color-secondary-light: #7EDDD6;
-$color-secondary-dark: #3BB5AD;
+$color-secondary: #FB923C;
+$color-secondary-light: #FDBA74;
+$color-secondary-dark: #F97316;
 
 // ===== 中性色 =====
-$color-bg: #F7F7F7;
+$color-bg: #FFF7ED;
 $color-bg-white: #FFFFFF;
-$color-bg-dark: #2C3E50;
+$color-bg-dark: #1C1917;
 
-$color-text: #333333;
-$color-text-secondary: #666666;
-$color-text-muted: #999999;
+$color-text: #1C1917;
+$color-text-secondary: #57534E;
+$color-text-muted: #A8A29E;
 $color-text-inverse: #FFFFFF;
 
-$color-border: #E8E8E8;
-$color-border-light: #F0F0F0;
+$color-border: #E7E5E4;
+$color-border-light: #F5F5F4;
 
 // ===== 功能色 =====
-$color-success: #52C41A;
-$color-warning: #FAAD14;
-$color-danger: #FF4D4F;
-$color-info: #1890FF;
+$color-success: #22C55E;
+$color-warning: #F59E0B;
+$color-danger: #EF4444;
+$color-info: #3B82F6;
 
 // ===== 圆角 =====
-$radius-sm: 4px;
-$radius-md: 8px;
-$radius-lg: 12px;
-$radius-xl: 16px;
+$radius-sm: 6px;
+$radius-md: 10px;
+$radius-lg: 14px;
+$radius-xl: 20px;
 $radius-round: 50%;
 
 // ===== 阴影 =====
-$shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
-$shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-$shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+$shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+$shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.04);
+$shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
 
 // ===== 间距 =====
 $spacing-xs: 4px;

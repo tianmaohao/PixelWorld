@@ -124,7 +124,7 @@ const router = useRouter()
 const canvasRef = ref<InstanceType<typeof EditorCanvas>>()
 
 const currentTool = ref<EditorTool>('brush')
-const selectedColor = ref('#FF6B35')
+const selectedColor = ref('#F43F5E')
 const showGrid = ref(true)
 const highlightColor = ref<string | null>(null)
 const zoom = ref(1)

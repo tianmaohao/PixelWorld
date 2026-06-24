@@ -25,10 +25,21 @@ const isEditor = computed(() => route.name === 'editor')
 
 const themeOverrides: GlobalThemeOverrides = {
   common: {
-    primaryColor: '#FF6B35',
-    primaryColorHover: '#FF8F65',
-    primaryColorPressed: '#E55A25',
-    primaryColorSuppl: '#FF6B35',
+    primaryColor: '#F43F5E',
+    primaryColorHover: '#FB7185',
+    primaryColorPressed: '#E11D48',
+    primaryColorSuppl: '#F43F5E',
+    borderRadius: '10px',
+    borderRadiusSmall: '6px',
+  },
+  Button: {
+    borderRadiusMedium: '10px',
+    borderRadiusLarge: '12px',
+  },
+  Card: {
+    borderRadius: '14px',
+  },
+  Tag: {
     borderRadius: '8px',
   },
 }

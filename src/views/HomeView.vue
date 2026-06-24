@@ -120,12 +120,12 @@ const palettes = [
 
 // Hero 区域的装饰性像素图案
 const heroPixels = [
-  '#FF6B35', '#FF6B35', '#FFD700', '#FFD700', '#4ECDC4', '#4ECDC4',
-  '#FF8F65', '#FF8F65', '#FFE066', '#FFE066', '#7EDDD6', '#7EDDD6',
-  '#FFD700', '#FFD700', '#FF6B35', '#4ECDC4', '#1E90FF', '#9B59B6',
-  '#FFE066', '#FFE066', '#FF8F65', '#7EDDD6', '#87CEEB', '#B39DDB',
-  '#4ECDC4', '#4ECDC4', '#1E90FF', '#9B59B6', '#FF6B35', '#FFD700',
-  '#7EDDD6', '#7EDDD6', '#87CEEB', '#B39DDB', '#FF8F65', '#FFE066',
+  '#F43F5E', '#F43F5E', '#FB923C', '#FB923C', '#FBBF24', '#FBBF24',
+  '#FB7185', '#FB7185', '#FDBA74', '#FDBA74', '#FDE68A', '#FDE68A',
+  '#FB923C', '#FB923C', '#F43F5E', '#FBBF24', '#A78BFA', '#C084FC',
+  '#FDBA74', '#FDBA74', '#FB7185', '#FDE68A', '#93C5FD', '#D8B4FE',
+  '#FBBF24', '#FBBF24', '#A78BFA', '#C084FC', '#F43F5E', '#FB923C',
+  '#FDE68A', '#FDE68A', '#93C5FD', '#D8B4FE', '#FB7185', '#FDBA74',
 ]
 </script>
 
