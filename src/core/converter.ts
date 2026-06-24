@@ -168,7 +168,13 @@ function applyShapeMask(
   shape: 'circle' | 'heart'
 ): void {
   const { canvas: maskCanvas, ctx: maskCtx } = createOffscreenCanvas(width, height)
+
+  // 先全黑（外部=透明）
   maskCtx.fillStyle = '#000000'
+  maskCtx.fillRect(0, 0, width, height)
+
+  // 再用白色画形状内部（保留区域）
+  maskCtx.fillStyle = '#FFFFFF'
   maskCtx.beginPath()
 
   if (shape === 'circle') {
@@ -182,12 +188,14 @@ function applyShapeMask(
     maskCtx.bezierCurveTo(cx + size * 0.6, cy - size * 1.2, cx + size * 1.2, cy - size * 0.3, cx, cy + size * 0.7)
   }
 
-  maskCtx.closePath(); maskCtx.fill()
+  maskCtx.closePath()
+  maskCtx.fill()
 
+  // 应用蒙版：白色=保留，黑色=透明
   const imageData = ctx.getImageData(0, 0, width, height)
   const maskData = maskCtx.getImageData(0, 0, width, height)
   for (let i = 0; i < imageData.data.length; i += 4) {
-    if (maskData.data[i] === 0) imageData.data[i + 3] = 0
+    if (maskData.data[i] < 128) imageData.data[i + 3] = 0
   }
   ctx.putImageData(imageData, 0, 0)
 }
