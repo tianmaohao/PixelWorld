@@ -1,0 +1,97 @@
+@use 'variables' as *;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  font-family: $font-family;
+  font-size: $font-size-md;
+  color: $color-text;
+  background-color: $color-bg;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#app {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+a {
+  color: $color-primary;
+  text-decoration: none;
+  transition: color $transition-fast;
+
+  &:hover {
+    color: $color-primary-dark;
+  }
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+// 滚动条样式
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C0C0C0;
+  border-radius: 3px;
+
+  &:hover {
+    background: #A0A0A0;
+  }
+}
+
+// 工具类
+.container {
+  max-width: $content-max-width;
+  margin: 0 auto;
+  padding: 0 $spacing-lg;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// 拖拽上传区域样式
+.upload-zone {
+  border: 2px dashed $color-border;
+  border-radius: $radius-lg;
+  padding: $spacing-2xl;
+  text-align: center;
+  cursor: pointer;
+  transition: all $transition-normal;
+  background: $color-bg-white;
+
+  &:hover,
+  &.drag-over {
+    border-color: $color-primary;
+    background: rgba($color-primary, 0.04);
+  }
+
+  &.drag-over {
+    transform: scale(1.01);
+  }
+}
