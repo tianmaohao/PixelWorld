@@ -32,7 +32,16 @@
         @click="fitToView"
         @mouseenter="($event.target as HTMLElement).style.background='rgba(0,0,0,0.85)'"
         @mouseleave="($event.target as HTMLElement).style.background='rgba(0,0,0,0.6)'"
-      >⊕</button>
+      >
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="10" cy="10" r="7" stroke="white" stroke-width="1.5"/>
+          <circle cx="10" cy="10" r="2" fill="white"/>
+          <line x1="10" y1="1" x2="10" y2="4.5" stroke="white" stroke-width="1.2"/>
+          <line x1="10" y1="15.5" x2="10" y2="19" stroke="white" stroke-width="1.2"/>
+          <line x1="1" y1="10" x2="4.5" y2="10" stroke="white" stroke-width="1.2"/>
+          <line x1="15.5" y1="10" x2="19" y2="10" stroke="white" stroke-width="1.2"/>
+        </svg>
+      </button>
     </div>
   </div>
 </template>
