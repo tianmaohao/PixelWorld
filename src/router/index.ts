@@ -18,6 +18,16 @@ const router = createRouter({
       name: 'editor',
       component: () => import('@/views/EditorView.vue'),
     },
+    {
+      path: '/community',
+      name: 'community',
+      component: () => import('@/views/CommunityView.vue'),
+    },
+    {
+      path: '/user',
+      name: 'user',
+      component: () => import('@/views/UserCenterView.vue'),
+    },
   ],
 })
 

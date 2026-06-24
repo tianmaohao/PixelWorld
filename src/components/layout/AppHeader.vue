@@ -15,6 +15,10 @@
           <span class="nav-icon">✏️</span>
           编辑器
         </router-link>
+        <router-link to="/community" class="nav-link">
+          <span class="nav-icon">🌍</span>
+          社区
+        </router-link>
 
         <!-- 全局导出 -->
         <div v-if="hasData" class="nav-link export-trigger" @click.stop="toggleExport">
@@ -27,6 +31,16 @@
             <div class="export-option" @click="doExport($event, 'pdf')">📄 PDF 模版</div>
           </div>
         </div>
+
+        <!-- 用户 -->
+        <router-link v-if="isLoggedIn" to="/user" class="nav-link user-link">
+          <span class="nav-icon">{{ user?.avatar || '🧑' }}</span>
+          {{ user?.username }}
+        </router-link>
+        <button v-else class="nav-link login-btn" @click="$emit('openAuth')">
+          <span class="nav-icon">👤</span>
+          登录
+        </button>
       </nav>
     </div>
   </header>
@@ -35,12 +49,20 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useProjectStore } from '@/stores/project'
+import { useUserStore } from '@/stores/user'
 import { exportPreviewImage, exportTemplateImage, exportColorBlockImage, exportPDF, downloadImage } from '@/core/export'
 
+defineEmits<{
+  (e: 'openAuth'): void
+}>()
+
 const store = useProjectStore()
+const userStore = useUserStore()
 const showExport = ref(false)
 
 const hasData = computed(() => store.editorPixels.size > 0)
+const isLoggedIn = computed(() => userStore.isLoggedIn)
+const user = computed(() => userStore.user)
 
 function toggleExport(e: MouseEvent) {
   e.stopPropagation()
@@ -154,6 +176,23 @@ function doExport(e: MouseEvent, type: string) {
 }
 
 .export-trigger { cursor: pointer; }
+
+.login-btn {
+  background: none;
+  border: 1px solid $color-primary;
+  color: $color-primary;
+  font-family: inherit;
+
+  &:hover {
+    background: $color-primary;
+    color: white;
+  }
+}
+
+.user-link {
+  font-weight: 600;
+  color: $color-primary;
+}
 
 .export-dropdown {
   position: absolute;
