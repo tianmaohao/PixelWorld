@@ -75,14 +75,56 @@ const panX = ref(0)
 const panY = ref(0)
 const lastMouse = ref({ x: 0, y: 0 })
 
+// 工具光标 SVG（用当前颜色着色）
+function makeToolCursor(svg: string, hotX = 0, hotY = 0): string {
+  const encoded = encodeURIComponent(svg)
+  return `url("data:image/svg+xml,${encoded}") ${hotX} ${hotY}, auto`
+}
+
+const TOOL_CURSORS = {
+  brush: makeToolCursor(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+      <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" fill="${'#F43F5E'}" stroke="#fff" stroke-width="0.8"/>
+      <path d="M20.71 5.63l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83a1 1 0 000-1.41z" fill="${'#E11D48'}" stroke="#fff" stroke-width="0.5"/>
+    </svg>`, 2, 21
+  ),
+  eraser: makeToolCursor(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+      <rect x="4" y="8" width="16" height="10" rx="2" fill="#FB923C" stroke="#fff" stroke-width="1"/>
+      <rect x="4" y="8" width="16" height="5" rx="2" fill="#F97316" stroke="#fff" stroke-width="0.5"/>
+      <line x1="10" y1="12" x2="14" y2="12" stroke="#fff" stroke-width="1" opacity="0.6"/>
+    </svg>`, 12, 12
+  ),
+  picker: makeToolCursor(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+      <circle cx="10" cy="10" r="7" fill="none" stroke="#F43F5E" stroke-width="1.5"/>
+      <circle cx="10" cy="10" r="2" fill="#F43F5E"/>
+      <line x1="10" y1="0" x2="10" y2="4" stroke="#F43F5E" stroke-width="1"/>
+      <line x1="10" y1="16" x2="10" y2="20" stroke="#F43F5E" stroke-width="1"/>
+      <line x1="0" y1="10" x2="4" y2="10" stroke="#F43F5E" stroke-width="1"/>
+      <line x1="16" y1="10" x2="20" y2="10" stroke="#F43F5E" stroke-width="1"/>
+    </svg>`, 10, 10
+  ),
+  fill: makeToolCursor(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24">
+      <path d="M16.56 8.94L8.32.7a1 1 0 00-1.41 0L5.17 2.44a1 1 0 000 1.41l2.12 2.12-4.26 4.26a2 2 0 000 2.83l5.64 5.64a2 2 0 002.83 0l5.64-5.64a2 2 0 000-2.83z" fill="#FB923C" stroke="#fff" stroke-width="0.8"/>
+      <path d="M19 15.5c0 1.38-2.24 3-5 3s-5-1.62-5-3c0-1.05 1.49-1.96 3.5-2.4l.5-.1c2.01.44 3.5 1.35 3.5 2.4z" fill="#F97316" stroke="#fff" stroke-width="0.5"/>
+    </svg>`, 3, 20
+  ),
+}
+
 const canvasStyle = computed(() => {
   let cursor = 'crosshair'
   if (props.tool === 'move' || isPanning.value || spaceHeld.value) {
     cursor = isPanning.value ? 'grabbing' : 'grab'
+  } else if (props.tool === 'brush') {
+    cursor = TOOL_CURSORS.brush
+  } else if (props.tool === 'eraser') {
+    cursor = TOOL_CURSORS.eraser
   } else if (props.tool === 'picker') {
-    cursor = 'crosshair'
+    cursor = TOOL_CURSORS.picker
   } else if (props.tool === 'fill') {
-    cursor = 'crosshair'
+    cursor = TOOL_CURSORS.fill
   }
 
   return {
