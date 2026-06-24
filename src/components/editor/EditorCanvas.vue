@@ -126,10 +126,14 @@ const TOOL_CURSORS = computed(() => ({
     </svg>`, 10, 10
   ),
   fill: makeToolCursor(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24">
-      <path d="M16.56 8.94L8.32.7a1 1 0 00-1.41 0L5.17 2.44a1 1 0 000 1.41l2.12 2.12-4.26 4.26a2 2 0 000 2.83l5.64 5.64a2 2 0 002.83 0l5.64-5.64a2 2 0 000-2.83z" fill="#FB923C" stroke="#fff" stroke-width="0.8"/>
-      <path d="M19 15.5c0 1.38-2.24 3-5 3s-5-1.62-5-3c0-1.05 1.49-1.96 3.5-2.4l.5-.1c2.01.44 3.5 1.35 3.5 2.4z" fill="#F97316" stroke="#fff" stroke-width="0.5"/>
-    </svg>`, 3, 20
+    `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
+      <g transform="rotate(-45, 14, 14)">
+        <path d="M8 6h8l4 8H4z" fill="#FB923C" stroke="#fff" stroke-width="0.8"/>
+        <path d="M4 14h16v2a4 4 0 01-4 4H8a4 4 0 01-4-4z" fill="#F97316" stroke="#fff" stroke-width="0.5"/>
+        <path d="M18 10l4-4 3 3-4 4z" fill="#FBBF24" stroke="#fff" stroke-width="0.5"/>
+      </g>
+      <circle cx="5" cy="24" r="1.5" fill="#F43F5E" stroke="#fff" stroke-width="0.8"/>
+    </svg>`, 5, 24
   ),
 }))
 
