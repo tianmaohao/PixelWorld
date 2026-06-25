@@ -42,11 +42,41 @@
         @select-color="selectedColor = $event"
       />
 
+      <!-- 画布尺寸自定义 -->
+      <div class="info-panel">
+        <h4 class="info-title">📐 画布尺寸</h4>
+        <div class="size-inputs">
+          <div class="size-row">
+            <n-input-number
+              v-model:value="canvasW"
+              :min="1" :max="200" :step="1" size="small"
+              placeholder="宽"
+              @update:value="handleSizeChange"
+            />
+            <span class="size-x">×</span>
+            <n-input-number
+              v-model:value="canvasH"
+              :min="1" :max="200" :step="1" size="small"
+              placeholder="高"
+              @update:value="handleSizeChange"
+            />
+          </div>
+          <div class="size-presets">
+            <button
+              v-for="preset in sizePresets"
+              :key="preset.label"
+              class="preset-btn"
+              :class="{ active: canvasW === preset.w && canvasH === preset.h }"
+              @click="applyPreset(preset.w, preset.h)"
+            >{{ preset.label }}</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 作品信息 -->
       <div v-if="store.result" class="info-panel">
-        <h4 class="info-title">📊 图片信息</h4>
+        <h4 class="info-title">📊 作品信息</h4>
         <div class="info-grid">
-          <span class="info-label">尺寸:</span>
-          <span class="info-value">{{ store.editorWidth }} × {{ store.editorHeight }}</span>
           <span class="info-label">豆子数:</span>
           <span class="info-value">{{ store.editorPixels.size }}颗</span>
           <span class="info-label">颜色数:</span>
@@ -87,7 +117,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { NModal, useMessage } from 'naive-ui'
+import { NModal, NInputNumber, useMessage } from 'naive-ui'
 import { useRouter } from 'vue-router'
 import { useProjectStore } from '@/stores/project'
 import type { EditorTool } from '@/types'
@@ -108,6 +138,38 @@ const showGrid = ref(true)
 const highlightColor = ref<string | null>(null)
 const zoom = ref(1)
 const showExportModal = ref(false)
+
+// 画布尺寸自定义
+const canvasW = ref(store.editorWidth)
+const canvasH = ref(store.editorHeight)
+
+const sizePresets = [
+  { label: '29×29', w: 29, h: 29 },
+  { label: '58×58', w: 58, h: 58 },
+  { label: '116×116', w: 116, h: 116 },
+  { label: '16×16', w: 16, h: 16 },
+  { label: '32×32', w: 32, h: 32 },
+  { label: '48×48', w: 48, h: 48 },
+  { label: '64×64', w: 64, h: 64 },
+]
+
+function handleSizeChange() {
+  const w = Math.max(1, Math.min(200, canvasW.value || 29))
+  const h = Math.max(1, Math.min(200, canvasH.value || 29))
+  canvasW.value = w
+  canvasH.value = h
+  store.editorWidth = w
+  store.editorHeight = h
+  store.compositeLayers()
+}
+
+function applyPreset(w: number, h: number) {
+  canvasW.value = w
+  canvasH.value = h
+  store.editorWidth = w
+  store.editorHeight = h
+  store.compositeLayers()
+}
 
 // 历史记录
 const history = ref<Map<string, string>[]>([])
@@ -280,6 +342,60 @@ function handleExportPDF() {
   box-shadow: $shadow-sm;
 
   .info-title { font-size: $font-size-sm; font-weight: 600; margin-bottom: $spacing-md; }
+
+  .size-inputs {
+    margin-bottom: $spacing-md;
+    padding-bottom: $spacing-md;
+    border-bottom: 1px solid $color-border-light;
+
+    .info-label {
+      display: block;
+      font-size: $font-size-xs;
+      color: $color-text-muted;
+      margin-bottom: $spacing-xs;
+    }
+
+    .size-row {
+      display: flex;
+      align-items: center;
+      gap: $spacing-xs;
+      margin-bottom: $spacing-sm;
+
+      .size-x {
+        color: $color-text-muted;
+        font-weight: 500;
+      }
+    }
+
+    .size-presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+
+      .preset-btn {
+        padding: 2px 8px;
+        border: 1px solid $color-border;
+        border-radius: $radius-sm;
+        background: $color-bg-white;
+        cursor: pointer;
+        font-size: 11px;
+        color: $color-text-secondary;
+        transition: all $transition-fast;
+
+        &:hover {
+          border-color: $color-primary;
+          color: $color-primary;
+        }
+
+        &.active {
+          background: $color-primary;
+          border-color: $color-primary;
+          color: white;
+        }
+      }
+    }
+  }
+
   .info-grid {
     display: grid;
     grid-template-columns: auto 1fr;
