@@ -31,7 +31,6 @@
         @update:zoom="(v: number) => zoom = v"
         @zoom-in="zoomIn"
         @zoom-out="zoomOut"
-        @size-change="handleSizeChange"
         @color-picked="handleColorPicked"
         @modified="saveHistory"
       />
