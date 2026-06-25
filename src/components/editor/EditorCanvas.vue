@@ -457,6 +457,7 @@ watch(() => [store.editorPixels.size, store.editorWidth, store.editorHeight], ()
 watch(() => props.showGrid, () => drawCanvas())
 watch(() => props.highlightColor, () => drawCanvas())
 watch(() => props.zoom, () => drawCanvas())
+watch(() => store.beadShape, () => drawCanvas())
 
 onMounted(() => {
   drawCanvas()
