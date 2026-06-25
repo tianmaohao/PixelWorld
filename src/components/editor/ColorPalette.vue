@@ -1,33 +1,52 @@
 <template>
-  <div class="color-palette">
-    <h3 class="palette-title">🎨 调色盘</h3>
-
-    <!-- 当前选中颜色 -->
-    <div class="current-color">
-      <div class="current-swatch" :style="{ background: selectedColor }" />
-      <span class="current-hex">{{ selectedColor }}</span>
+  <div class="bead-tray">
+    <div class="tray-header">
+      <h3 class="tray-title">🫘 豆豆盘</h3>
+      <div class="shape-toggle">
+        <button
+          class="shape-btn"
+          :class="{ active: store.beadShape === 'round' }"
+          title="圆形豆"
+          @click="store.beadShape = 'round'"
+        >⚪</button>
+        <button
+          class="shape-btn"
+          :class="{ active: store.beadShape === 'square' }"
+          title="方形豆"
+          @click="store.beadShape = 'square'"
+        >⬛</button>
+      </div>
     </div>
 
-    <!-- 使用的颜色列表 -->
-    <div class="color-grid">
+    <!-- 当前选中 -->
+    <div class="current-bead">
+      <div class="current-swatch" :class="store.beadShape" :style="{ background: selectedColor }" />
+      <div class="current-info">
+        <span class="current-hex">{{ selectedColor }}</span>
+        <span class="current-count">已用 {{ currentCount }} 颗</span>
+      </div>
+    </div>
+
+    <!-- 豆豆列表 -->
+    <div class="bead-grid">
       <button
-        v-for="color in usedColors"
-        :key="color.hex"
-        class="color-cell"
+        v-for="bead in beadList"
+        :key="bead.hex"
+        class="bead-cell"
         :class="{
-          active: selectedColor === color.hex,
-          highlighted: highlightColor === color.hex
+          active: selectedColor === bead.hex,
+          highlighted: highlightColor === bead.hex
         }"
-        :title="`${color.code} - ${color.name}`"
-        @click="$emit('selectColor', color.hex)"
+        :title="`${bead.code} - ${bead.name}`"
+        @click="$emit('selectColor', bead.hex)"
       >
-        <div class="cell-color" :style="{ background: color.hex }" />
-        <span class="cell-code">{{ color.code }}</span>
+        <div class="bead-shape" :class="store.beadShape" :style="{ background: bead.hex }" />
+        <span class="bead-count">{{ bead.count }}</span>
       </button>
     </div>
 
     <!-- 自定义颜色 -->
-    <div class="custom-color">
+    <div class="custom-bead">
       <label class="custom-label">自定义颜色</label>
       <div class="custom-input">
         <input
@@ -63,9 +82,32 @@ defineEmits<{
 
 const store = useProjectStore()
 
-const usedColors = computed(() => {
-  if (!store.result) return []
-  return store.result.beadColors
+/** 统计每个颜色的使用数量 */
+const beadList = computed(() => {
+  const countMap = new Map<string, number>()
+  for (const [, color] of store.editorPixels) {
+    const hex = color.toUpperCase()
+    countMap.set(hex, (countMap.get(hex) || 0) + 1)
+  }
+
+  // 如果有转换结果，用结果的颜色列表（保持顺序）
+  if (store.result) {
+    return store.result.beadColors.map(bc => ({
+      ...bc,
+      count: countMap.get(bc.hex.toUpperCase()) || 0,
+    })).filter(b => b.count > 0)
+  }
+
+  // 否则按数量排序
+  return Array.from(countMap.entries())
+    .map(([hex, count]) => ({ hex, code: '', name: hex, brand: store.palette, count }))
+    .sort((a, b) => b.count - a.count)
+})
+
+const currentCount = computed(() => {
+  return store.editorPixels.size > 0
+    ? Array.from(store.editorPixels.values()).filter(c => c.toUpperCase() === props.selectedColor.toUpperCase()).length
+    : 0
 })
 
 function handleHexInput(e: Event) {
@@ -73,26 +115,59 @@ function handleHexInput(e: Event) {
   let hex = input.value.trim()
   if (!hex.startsWith('#')) hex = '#' + hex
   if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
-    // emit
+    // emit handled by parent
   }
 }
 </script>
 
 <style lang="scss" scoped>
-.color-palette {
+.bead-tray {
   background: $color-bg-white;
   border-radius: $radius-lg;
   padding: $spacing-md;
   box-shadow: $shadow-sm;
 }
 
-.palette-title {
-  font-size: $font-size-sm;
-  font-weight: 600;
+.tray-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: $spacing-md;
 }
 
-.current-color {
+.tray-title {
+  font-size: $font-size-sm;
+  font-weight: 600;
+}
+
+.shape-toggle {
+  display: flex;
+  gap: 2px;
+  background: $color-bg;
+  border-radius: $radius-sm;
+  padding: 2px;
+}
+
+.shape-btn {
+  width: 28px;
+  height: 24px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all $transition-fast;
+
+  &.active {
+    background: $color-bg-white;
+    box-shadow: $shadow-sm;
+  }
+}
+
+.current-bead {
   display: flex;
   align-items: center;
   gap: $spacing-sm;
@@ -102,34 +177,49 @@ function handleHexInput(e: Event) {
   border-radius: $radius-md;
 
   .current-swatch {
-    width: 32px;
-    height: 32px;
-    border-radius: $radius-sm;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
     border: 2px solid $color-border;
+
+    &.round { border-radius: 50%; }
+    &.square { border-radius: 4px; }
   }
 
-  .current-hex {
-    font-size: $font-size-sm;
-    font-family: monospace;
-    color: $color-text-secondary;
+  .current-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    .current-hex {
+      font-size: $font-size-sm;
+      font-family: monospace;
+      color: $color-text;
+      font-weight: 500;
+    }
+
+    .current-count {
+      font-size: $font-size-xs;
+      color: $color-text-muted;
+    }
   }
 }
 
-.color-grid {
+.bead-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: $spacing-xs;
-  max-height: 300px;
+  gap: 4px;
+  max-height: 320px;
   overflow-y: auto;
   margin-bottom: $spacing-md;
 }
 
-.color-cell {
+.bead-cell {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 4px;
+  gap: 3px;
+  padding: 4px 2px;
   border: 2px solid transparent;
   border-radius: $radius-sm;
   background: transparent;
@@ -138,6 +228,7 @@ function handleHexInput(e: Event) {
 
   &:hover {
     border-color: $color-border;
+    background: rgba(0, 0, 0, 0.02);
   }
 
   &.active {
@@ -149,20 +240,41 @@ function handleHexInput(e: Event) {
     box-shadow: 0 0 0 2px $color-secondary;
   }
 
-  .cell-color {
-    width: 28px;
-    height: 28px;
-    border-radius: 4px;
+  .bead-shape {
+    width: 30px;
+    height: 30px;
     border: 1px solid rgba(0, 0, 0, 0.1);
+    position: relative;
+
+    &.round {
+      border-radius: 50%;
+      // 高光效果
+      &::after {
+        content: '';
+        position: absolute;
+        top: 3px;
+        left: 4px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.25);
+      }
+    }
+
+    &.square {
+      border-radius: 3px;
+    }
   }
 
-  .cell-code {
+  .bead-count {
     font-size: 9px;
     color: $color-text-muted;
+    font-weight: 500;
+    line-height: 1;
   }
 }
 
-.custom-color {
+.custom-bead {
   .custom-label {
     display: block;
     font-size: $font-size-xs;
