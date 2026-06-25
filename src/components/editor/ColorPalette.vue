@@ -324,13 +324,10 @@ function handleHexInput(e: Event) {
 
 .category-tabs {
   display: flex;
-  gap: 2px;
+  flex-wrap: wrap;
+  gap: 3px;
   margin-bottom: $spacing-sm;
-  overflow-x: auto;
   flex-shrink: 0;
-  padding-bottom: 2px;
-
-  &::-webkit-scrollbar { height: 0; }
 }
 
 .cat-tab {
