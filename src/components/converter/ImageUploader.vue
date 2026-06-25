@@ -30,7 +30,7 @@
         <div class="progress-bar">
           <div class="progress-fill" :style="{ width: processingProgress + '%' }" />
         </div>
-        <p class="processing-hint">首次使用需下载AI模型(~40MB)，请耐心等待</p>
+        <p class="processing-hint">🎨 小助手正在努力抠图中，请稍等一下下噢~</p>
       </div>
 
       <!-- 预览状态 -->
@@ -46,22 +46,14 @@
 
     <!-- 去背景按钮 -->
     <div v-if="previewUrl && !isProcessing" class="bg-remove-bar" @click.stop>
-      <div class="bg-remove-left">
-        <n-switch
-          v-model:value="bgRemoveEnabled"
-          :disabled="isProcessing"
-          @update:value="handleBgRemoveToggle"
-        />
-        <span class="bg-remove-label">智能去背景</span>
-      </div>
       <n-button
-        v-if="bgRemoveEnabled && !bgRemoved"
+        v-if="!bgRemoved"
         size="small"
         type="primary"
         :loading="isProcessing"
         @click="handleRemoveBg"
       >
-        ✨ 一键抠图
+        ✨ AI 一键抠图
       </n-button>
       <n-button
         v-if="bgRemoved"
@@ -76,8 +68,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { NButton, NSwitch, useMessage } from 'naive-ui'
+import { ref, nextTick } from 'vue'
+import { NButton, useMessage } from 'naive-ui'
 import { removeImageBackground } from '@/core/background'
 
 const emit = defineEmits<{
@@ -93,7 +85,6 @@ const dragCounter = ref(0)
 const isProcessing = ref(false)
 const processingStage = ref('')
 const processingProgress = ref(0)
-const bgRemoveEnabled = ref(true)
 const bgRemoved = ref(false)
 const currentFileName = ref('')
 
@@ -187,13 +178,6 @@ function handleRestoreOriginal() {
   previewUrl.value = originalUrl.value
   bgRemoved.value = false
   emit('upload', originalUrl.value, currentFileName.value)
-}
-
-/** 去背景开关切换 */
-function handleBgRemoveToggle(val: boolean) {
-  if (!val && bgRemoved.value) {
-    handleRestoreOriginal()
-  }
 }
 
 /** 清除图片 */

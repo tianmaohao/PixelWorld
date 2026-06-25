@@ -95,7 +95,7 @@
     </n-button>
 
     <!-- 豆子数量统计 -->
-    <div class="stats">
+    <div v-if="store.result" class="stats">
       <span class="stat-label">预计豆子数:</span>
       <span class="stat-value">{{ store.beadCount.toLocaleString() }}颗</span>
     </div>
