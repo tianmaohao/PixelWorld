@@ -96,15 +96,67 @@ defineEmits<{
 const store = useProjectStore()
 const activeCategory = ref('全部')
 
+// 纯色模式默认色板
+const DEFAULT_COLORS: BeadColor[] = [
+  // 黑白灰
+  { code: 'C01', name: '白色', hex: '#FFFFFF', brand: 'none' },
+  { code: 'C02', name: '亮灰', hex: '#E0E0E0', brand: 'none' },
+  { code: 'C03', name: '中灰', hex: '#808080', brand: 'none' },
+  { code: 'C04', name: '深灰', hex: '#444444', brand: 'none' },
+  { code: 'C05', name: '黑色', hex: '#1A1A1A', brand: 'none' },
+  // 肤色
+  { code: 'C06', name: '白皙', hex: '#FFF5EE', brand: 'none' },
+  { code: 'C07', name: '浅肤', hex: '#FFE4C4', brand: 'none' },
+  { code: 'C08', name: '肤色', hex: '#FFDAB9', brand: 'none' },
+  { code: 'C09', name: '暖肤', hex: '#F5C6AA', brand: 'none' },
+  { code: 'C10', name: '中肤', hex: '#DEB887', brand: 'none' },
+  { code: 'C11', name: '深肤', hex: '#C49A6C', brand: 'none' },
+  { code: 'C12', name: '棕肤', hex: '#A0785A', brand: 'none' },
+  // 红
+  { code: 'C13', name: '大红', hex: '#E4002B', brand: 'none' },
+  { code: 'C14', name: '浅红', hex: '#FF6B6B', brand: 'none' },
+  { code: 'C15', name: '粉红', hex: '#FFB3C1', brand: 'none' },
+  { code: 'C16', name: '玫红', hex: '#FF1493', brand: 'none' },
+  // 橙
+  { code: 'C17', name: '橙色', hex: '#FF8C00', brand: 'none' },
+  { code: 'C18', name: '浅橙', hex: '#FFB347', brand: 'none' },
+  { code: 'C19', name: '珊瑚', hex: '#FF7F50', brand: 'none' },
+  // 黄
+  { code: 'C20', name: '明黄', hex: '#FFD700', brand: 'none' },
+  { code: 'C21', name: '浅黄', hex: '#FFF44F', brand: 'none' },
+  { code: 'C22', name: '土黄', hex: '#DAA520', brand: 'none' },
+  // 绿
+  { code: 'C23', name: '嫩绿', hex: '#7CFC00', brand: 'none' },
+  { code: 'C24', name: '草绿', hex: '#32CD32', brand: 'none' },
+  { code: 'C25', name: '翠绿', hex: '#00A86B', brand: 'none' },
+  { code: 'C26', name: '深绿', hex: '#006400', brand: 'none' },
+  // 蓝
+  { code: 'C27', name: '天蓝', hex: '#87CEEB', brand: 'none' },
+  { code: 'C28', name: '蓝色', hex: '#1E90FF', brand: 'none' },
+  { code: 'C29', name: '深蓝', hex: '#003366', brand: 'none' },
+  // 紫
+  { code: 'C30', name: '薰衣草', hex: '#B57EDC', brand: 'none' },
+  { code: 'C31', name: '紫色', hex: '#9B59B6', brand: 'none' },
+  { code: 'C32', name: '深紫', hex: '#4A148C', brand: 'none' },
+  // 棕
+  { code: 'C33', name: '浅棕', hex: '#D2B48C', brand: 'none' },
+  { code: 'C34', name: '棕色', hex: '#8B4513', brand: 'none' },
+  { code: 'C35', name: '咖啡', hex: '#6F4E37', brand: 'none' },
+  { code: 'C36', name: '深棕', hex: '#3E2723', brand: 'none' },
+]
+
 // 当前调色盘的所有颜色
 const allBeads = computed<BeadColor[]>(() => {
   if (store.palette === 'none') {
-    // 纯色模式：从编辑器像素中收集颜色
+    // 纯色模式：默认色板 + 编辑器中额外使用的颜色
     const colorMap = new Map<string, BeadColor>()
+    for (const bead of DEFAULT_COLORS) {
+      colorMap.set(bead.hex.toUpperCase(), bead)
+    }
     for (const [, hex] of store.editorPixels) {
       const key = hex.toUpperCase()
       if (!colorMap.has(key)) {
-        colorMap.set(key, { code: '', name: hex, hex, brand: 'none' })
+        colorMap.set(key, { code: 'C' + (colorMap.size + 1), name: hex, hex, brand: 'none' })
       }
     }
     return Array.from(colorMap.values())
