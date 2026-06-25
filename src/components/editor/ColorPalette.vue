@@ -125,43 +125,55 @@ function generatePalette(n: number): BeadColor[] {
     colors.push({ code: `C${colors.length + 1}`, name: hex, hex, brand: 'none' })
   }
 
-  // ===== 1. 灰阶 12 级 =====
-  for (let i = 0; i <= 11; i++) {
-    const v = Math.round(i * 255 / 11)
+  // 12 个色相方向，均匀覆盖色轮
+  const hues = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330]
+
+  // ===== 1. 灰阶 8 级 =====
+  for (let i = 0; i <= 7; i++) {
+    const v = Math.round(i * 255 / 7)
     add(`#${v.toString(16).padStart(2, '0').repeat(3)}`)
   }
 
-  // ===== 2. 核心色：16 色相 × 5 明度 = 80 色 =====
-  // 覆盖红/橙/黄/黄绿/绿/青/蓝/紫 等所有方向
-  const coreHues = [0, 15, 30, 45, 60, 80, 100, 120, 150, 180, 210, 240, 270, 300, 330, 345]
-  const coreLights = [35, 50, 65, 80, 90]
-  for (const hue of coreHues) {
-    for (const light of coreLights) {
-      if (colors.length >= n) return colors
-      add(hsvToHex(hue, 80, light))
-    }
+  // ===== 2. 按轮次生成，每轮覆盖所有色相 =====
+  // 第 1 轮：高饱和高明度（鲜艳色）
+  for (const hue of hues) {
+    if (colors.length >= n) break
+    add(hsvToHex(hue, 85, 65))
   }
-
-  // ===== 3. 补充低饱和色（肤色/粉/米/淡彩）=====
-  const softHues = [0, 10, 20, 30, 40, 50, 200, 220, 280, 320]
-  const softSats = [15, 30, 50]
-  const softLights = [60, 70, 80, 88]
-  for (const hue of softHues) {
-    for (const sat of softSats) {
-      for (const light of softLights) {
-        if (colors.length >= n) return colors
-        add(hsvToHex(hue, sat, light))
-      }
-    }
+  // 第 2 轮：高饱和中明度
+  for (const hue of hues) {
+    if (colors.length >= n) break
+    add(hsvToHex(hue, 80, 45))
   }
-
-  // ===== 4. 补充深色（深红/深蓝/深绿/深紫/深棕）=====
-  const darkHues = [0, 20, 40, 100, 150, 210, 260, 300, 340]
-  for (const hue of darkHues) {
-    if (colors.length >= n) return colors
-    add(hsvToHex(hue, 70, 20))
-    if (colors.length >= n) return colors
-    add(hsvToHex(hue, 50, 15))
+  // 第 3 轮：中饱和中高明度（柔和色）
+  for (const hue of hues) {
+    if (colors.length >= n) break
+    add(hsvToHex(hue, 55, 70))
+  }
+  // 第 4 轮：低饱和高明度（淡彩/肤色区）
+  for (const hue of hues) {
+    if (colors.length >= n) break
+    add(hsvToHex(hue, 30, 80))
+  }
+  // 第 5 轮：高饱和低明度（深色）
+  for (const hue of hues) {
+    if (colors.length >= n) break
+    add(hsvToHex(hue, 70, 25))
+  }
+  // 第 6 轮：中饱和中明度（中间色）
+  for (const hue of hues) {
+    if (colors.length >= n) break
+    add(hsvToHex(hue, 65, 55))
+  }
+  // 第 7 轮：低饱和中低明度（暗淡色/棕色区）
+  for (const hue of hues) {
+    if (colors.length >= n) break
+    add(hsvToHex(hue, 40, 40))
+  }
+  // 第 8 轮：高饱和极高明度（亮色）
+  for (const hue of hues) {
+    if (colors.length >= n) break
+    add(hsvToHex(hue, 75, 88))
   }
 
   return colors.slice(0, n)
