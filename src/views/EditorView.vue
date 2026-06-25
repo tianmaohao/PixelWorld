@@ -36,17 +36,6 @@
 
     <!-- 右侧面板 -->
     <aside class="editor-sidebar">
-      <LayerPanel
-        :layers="store.layers"
-        :active-layer-id="store.activeLayerId"
-        @add-layer="store.addLayer()"
-        @remove-layer="store.removeLayer($event)"
-        @select-layer="store.selectLayer($event)"
-        @toggle-visibility="store.toggleLayerVisibility($event)"
-        @toggle-lock="store.toggleLayerLock($event)"
-        @set-opacity="store.setLayerOpacity(store.activeLayerId, $event)"
-      />
-
       <ColorPalette
         :selected-color="selectedColor"
         :highlight-color="highlightColor"
@@ -62,8 +51,6 @@
           <span class="info-value">{{ store.editorPixels.size }}颗</span>
           <span class="info-label">颜色数:</span>
           <span class="info-value">{{ usedColorCount }}种</span>
-          <span class="info-label">图层数:</span>
-          <span class="info-value">{{ store.layers.length }}层</span>
         </div>
       </div>
 
@@ -108,7 +95,6 @@ import { exportPreviewImage, exportTemplateImage, exportColorBlockImage, exportP
 import ToolBar from '@/components/editor/ToolBar.vue'
 import ColorPalette from '@/components/editor/ColorPalette.vue'
 import EditorCanvas from '@/components/editor/EditorCanvas.vue'
-import LayerPanel from '@/components/editor/LayerPanel.vue'
 
 const store = useProjectStore()
 const message = useMessage()
