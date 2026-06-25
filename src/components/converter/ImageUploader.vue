@@ -185,7 +185,6 @@ function clearImage() {
   previewUrl.value = ''
   originalUrl.value = ''
   bgRemoved.value = false
-  bgRemoveEnabled.value = true
   currentFileName.value = ''
   if (fileInput.value) {
     fileInput.value.value = ''

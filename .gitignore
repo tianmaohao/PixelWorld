@@ -4,3 +4,6 @@ dist/
 *.local
 .env
 .env.*
+
+# Local-only files
+PixelWorldBackend/BackendCodingHabits.md

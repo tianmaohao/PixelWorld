@@ -33,14 +33,10 @@
         </div>
 
         <!-- 用户 -->
-        <router-link v-if="isLoggedIn" to="/user" class="nav-link user-link">
-          <span class="nav-icon">{{ user?.avatar || '🧑' }}</span>
-          {{ user?.username }}
+        <router-link to="/user" class="nav-link user-link">
+          <span class="nav-icon">🧑</span>
+          个人中心
         </router-link>
-        <button v-else class="nav-link login-btn" @click="$emit('openAuth')">
-          <span class="nav-icon">👤</span>
-          登录
-        </button>
       </nav>
     </div>
   </header>
@@ -49,20 +45,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useProjectStore } from '@/stores/project'
-import { useUserStore } from '@/stores/user'
 import { exportPreviewImage, exportTemplateImage, exportColorBlockImage, exportPDF, downloadImage } from '@/core/export'
 
-defineEmits<{
-  (e: 'openAuth'): void
-}>()
-
 const store = useProjectStore()
-const userStore = useUserStore()
 const showExport = ref(false)
 
 const hasData = computed(() => store.editorPixels.size > 0)
-const isLoggedIn = computed(() => userStore.isLoggedIn)
-const user = computed(() => userStore.user)
 
 function toggleExport(e: MouseEvent) {
   e.stopPropagation()
