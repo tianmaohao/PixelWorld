@@ -238,30 +238,47 @@ const categories = computed(() => {
   return cats
 })
 
-// 按色系过滤
+// hex → HSV 色相(0-360)、饱和度(0-1)、明度(0-1)
+function hexToHsl(hex: string): { h: number; s: number; l: number } {
+  const r = parseInt(hex.slice(1, 3), 16) / 255
+  const g = parseInt(hex.slice(3, 5), 16) / 255
+  const b = parseInt(hex.slice(5, 7), 16) / 255
+  const max = Math.max(r, g, b), min = Math.min(r, g, b)
+  const l = (max + min) / 2
+  if (max === min) return { h: 0, s: 0, l }
+  const d = max - min
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
+  let h = 0
+  if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6
+  else if (max === g) h = ((b - r) / d + 2) / 6
+  else h = ((r - g) / d + 4) / 6
+  return { h: h * 360, s, l }
+}
+
+// 按色系过滤（基于色相）
 const filteredBeads = computed(() => {
   if (activeCategory.value === '全部') return allBeads.value
 
   return allBeads.value.filter(bead => {
-    const hex = bead.hex.toUpperCase()
-    const r = parseInt(hex.slice(1, 3), 16)
-    const g = parseInt(hex.slice(3, 5), 16)
-    const b = parseInt(hex.slice(5, 7), 16)
-    const max = Math.max(r, g, b)
-    const min = Math.min(r, g, b)
-    const sat = max === 0 ? 0 : (max - min) / max
-    const light = (max + min) / 2 / 255
+    const { h, s, l } = hexToHsl(bead.hex.toUpperCase())
 
+    // 灰色：饱和度极低
+    if (activeCategory.value === '灰') return s < 0.1
+    // 肤色：低饱和暖色
+    if (activeCategory.value === '肤') return s < 0.4 && h < 50 && l > 0.6
+
+    // 有色系：饱和度 > 0.1 才算
+    if (s < 0.1) return false
+
+    // 按色相分组（色轮 0-360°）
     switch (activeCategory.value) {
-      case '肤': return hex.startsWith('#FF') && g > 150 && b > 150 && r > 200 && sat < 0.3
-      case '红': return r > 180 && g < 100 && b < 100
-      case '橙': return r > 200 && g > 80 && g < 180 && b < 100
-      case '黄': return r > 200 && g > 200 && b < 120
-      case '绿': return g > 120 && r < 120 && b < 120
-      case '蓝': return b > 120 && r < 100 && g < 180
-      case '紫': return r > 80 && b > 120 && g < 100
-      case '棕': return r > 80 && g > 40 && b < 80 && light < 0.4 && sat > 0.3
-      case '灰': return sat < 0.1
+      case '红': return (h < 15 || h >= 345) // 0°±15
+      case '橙': return h >= 15 && h < 45      // 15-45
+      case '黄': return h >= 45 && h < 75      // 45-75
+      case '绿': return h >= 75 && h < 165     // 75-165
+      case '蓝': return h >= 165 && h < 255    // 165-255
+      case '紫': return h >= 255 && h < 305    // 255-305
+      case '棕': return h >= 15 && h < 45 && l < 0.5 // 低明度橙色系=棕
       default: return true
     }
   })
