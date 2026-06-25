@@ -1,7 +1,13 @@
 <template>
   <div class="editor-page">
-    <!-- 左侧工具栏 -->
+    <!-- 手机端提示 -->
+    <div v-if="isMobile" class="mobile-tip">
+      📱 手机屏幕有点小噢~ 推荐用电脑浏览器体验更好捏！
+    </div>
+
+    <!-- 桌面端：左侧工具栏 -->
     <ToolBar
+      v-if="!isMobile"
       :current-tool="currentTool"
       :show-grid="showGrid"
       :highlight-color="highlightColor"
@@ -19,7 +25,7 @@
       @export-pdf="handleExportPDF"
     />
 
-    <!-- 中间画布 -->
+    <!-- 画布 -->
     <div class="editor-canvas-area">
       <EditorCanvas
         ref="canvasRef"
@@ -36,15 +42,14 @@
       />
     </div>
 
-    <!-- 右侧面板 -->
-    <aside class="editor-sidebar">
+    <!-- 桌面端：右侧面板 -->
+    <aside v-if="!isMobile" class="editor-sidebar">
       <ColorPalette
         :selected-color="selectedColor"
         :highlight-color="highlightColor"
         @select-color="selectedColor = $event"
       />
 
-      <!-- 作品信息 -->
       <div v-if="store.result" class="info-panel">
         <h4 class="info-title">📊 作品信息</h4>
         <div class="info-grid">
@@ -55,11 +60,8 @@
         </div>
       </div>
 
-      <!-- 画布设置 -->
       <div class="canvas-settings">
         <h4 class="settings-title">⚙️ 画布设置</h4>
-
-        <!-- 尺寸 -->
         <div class="setting-row">
           <span class="setting-label">尺寸</span>
           <div class="size-inputs">
@@ -70,19 +72,12 @@
               @change="handleHeightChange" />
           </div>
         </div>
-
-        <!-- 背景 -->
         <div class="setting-row">
           <span class="setting-label">背景</span>
           <div class="bg-options">
-            <button
-              v-for="bg in bgOptions"
-              :key="bg.name"
-              class="bg-btn"
-              :class="[bg.name, { active: store.canvasBg === bg.name }]"
-              :title="bg.label"
-              @click="store.canvasBg = bg.name"
-            />
+            <button v-for="bg in bgOptions" :key="bg.name"
+              class="bg-btn" :class="[bg.name, { active: store.canvasBg === bg.name }]"
+              :title="bg.label" @click="store.canvasBg = bg.name" />
           </div>
         </div>
       </div>
@@ -93,6 +88,55 @@
         </n-button>
       </div>
     </aside>
+
+    <!-- 移动端：底部工具栏 -->
+    <div v-if="isMobile" class="mobile-bottom-bar">
+      <div class="mobile-tools">
+        <button v-for="tool in mobileTools" :key="tool.id"
+          class="mobile-tool-btn" :class="{ active: currentTool === tool.id }"
+          @click="currentTool = tool.id">
+          {{ tool.icon }}
+        </button>
+        <div class="mobile-divider" />
+        <button class="mobile-tool-btn" @click="undo" :disabled="historyIndex <= 0">↩️</button>
+        <button class="mobile-tool-btn" @click="redo" :disabled="historyIndex >= history.length - 1">↪️</button>
+        <div class="mobile-divider" />
+        <button class="mobile-tool-btn" :class="{ active: showGrid }" @click="showGrid = !showGrid">📐</button>
+        <button class="mobile-tool-btn" @click="showSidebar = !showSidebar">🎨</button>
+        <button class="mobile-tool-btn" @click="showExportModal = true">📥</button>
+      </div>
+
+      <!-- 当前颜色指示器 -->
+      <div class="mobile-color-bar">
+        <div class="mobile-color-swatch" :style="{ background: selectedColor }" />
+        <span class="mobile-color-hex">{{ selectedColor }}</span>
+        <div class="mobile-zoom">
+          <button @click="zoomOut">−</button>
+          <span>{{ Math.round(zoom * 100) }}%</span>
+          <button @click="zoomIn">+</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 移动端：侧边栏抽屉 -->
+    <Transition name="slide">
+      <div v-if="isMobile && showSidebar" class="mobile-drawer-mask" @click="showSidebar = false" />
+    </Transition>
+    <Transition name="slide-right">
+      <aside v-if="isMobile && showSidebar" class="mobile-drawer">
+        <div class="drawer-header">
+          <span>🎨 调色盘</span>
+          <button class="drawer-close" @click="showSidebar = false">✕</button>
+        </div>
+        <div class="drawer-body">
+          <ColorPalette
+            :selected-color="selectedColor"
+            :highlight-color="highlightColor"
+            @select-color="selectedColor = $event; showSidebar = false"
+          />
+        </div>
+      </aside>
+    </Transition>
 
     <!-- 导出弹窗 -->
     <n-modal v-model:show="showExportModal" preset="card" title="📥 导出选项" style="max-width: 480px">
@@ -120,7 +164,7 @@
 
 <script setup lang="ts">
 import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
-import { NModal, useMessage } from 'naive-ui'
+import { NModal, NButton, useMessage } from 'naive-ui'
 import { useRouter } from 'vue-router'
 import { useProjectStore } from '@/stores/project'
 import type { EditorTool } from '@/types'
@@ -141,6 +185,8 @@ const showGrid = ref(true)
 const highlightColor = ref<string | null>(null)
 const zoom = ref(1)
 const showExportModal = ref(false)
+const showSidebar = ref(false)
+const isMobile = ref(false)
 
 // 历史记录
 const history = ref<Map<string, string>[]>([])
@@ -152,13 +198,28 @@ const usedColorCount = computed(() => {
   return colors.size
 })
 
+const mobileTools = [
+  { id: 'brush' as EditorTool, icon: '✏️' },
+  { id: 'eraser' as EditorTool, icon: '🧹' },
+  { id: 'picker' as EditorTool, icon: '💉' },
+  { id: 'fill' as EditorTool, icon: '🪣' },
+  { id: 'move' as EditorTool, icon: '✋' },
+]
+
+function checkMobile() {
+  isMobile.value = window.innerWidth < 768
+}
+
 onMounted(() => {
   saveHistory()
   window.addEventListener('keydown', handleKeydown)
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
 })
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
+  window.removeEventListener('resize', checkMobile)
 })
 
 function handleKeydown(e: KeyboardEvent) {
@@ -207,7 +268,6 @@ function restoreHistory() {
   for (const [key, color] of snapshot) {
     store.editorPixels.set(key, color)
   }
-  // 同步回当前活动图层
   const layer = store.activeLayer
   if (layer) {
     layer.pixels = new Map(store.editorPixels)
@@ -307,6 +367,28 @@ function handleExportPDF() {
   gap: $spacing-sm;
   background: $color-bg;
   overflow: hidden;
+  position: relative;
+}
+
+.mobile-tip {
+  position: absolute;
+  top: $spacing-sm;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba($color-primary, 0.1);
+  color: $color-primary;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  white-space: nowrap;
+  z-index: 50;
+  pointer-events: none;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
 .editor-canvas-area {
@@ -339,60 +421,6 @@ function handleExportPDF() {
   box-shadow: $shadow-sm;
 
   .info-title { font-size: $font-size-sm; font-weight: 600; margin-bottom: $spacing-md; }
-
-  .size-inputs {
-    margin-bottom: $spacing-md;
-    padding-bottom: $spacing-md;
-    border-bottom: 1px solid $color-border-light;
-
-    .info-label {
-      display: block;
-      font-size: $font-size-xs;
-      color: $color-text-muted;
-      margin-bottom: $spacing-xs;
-    }
-
-    .size-row {
-      display: flex;
-      align-items: center;
-      gap: $spacing-xs;
-      margin-bottom: $spacing-sm;
-
-      .size-x {
-        color: $color-text-muted;
-        font-weight: 500;
-      }
-    }
-
-    .size-presets {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-
-      .preset-btn {
-        padding: 2px 8px;
-        border: 1px solid $color-border;
-        border-radius: $radius-sm;
-        background: $color-bg-white;
-        cursor: pointer;
-        font-size: 11px;
-        color: $color-text-secondary;
-        transition: all $transition-fast;
-
-        &:hover {
-          border-color: $color-primary;
-          color: $color-primary;
-        }
-
-        &.active {
-          background: $color-primary;
-          border-color: $color-primary;
-          color: white;
-        }
-      }
-    }
-  }
-
   .info-grid {
     display: grid;
     grid-template-columns: auto 1fr;
@@ -424,7 +452,6 @@ function handleExportPDF() {
     align-items: center;
     justify-content: space-between;
     margin-bottom: $spacing-sm;
-
     &:last-child { margin-bottom: 0; }
   }
 
@@ -449,23 +476,16 @@ function handleExportPDF() {
       font-family: monospace;
       padding: 0;
       outline: none;
-
       &:focus { border-color: $color-primary; }
       &::-webkit-inner-spin-button,
       &::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
       -moz-appearance: textfield;
     }
 
-    .size-x {
-      color: $color-text-muted;
-      font-size: $font-size-sm;
-    }
+    .size-x { color: $color-text-muted; font-size: $font-size-sm; }
   }
 
-  .bg-options {
-    display: flex;
-    gap: 4px;
-  }
+  .bg-options { display: flex; gap: 4px; }
 
   .bg-btn {
     width: 24px;
@@ -507,8 +527,160 @@ function handleExportPDF() {
   .export-desc { font-size: $font-size-xs; color: $color-text-muted; margin-top: 2px; }
 }
 
-@media (max-width: $breakpoint-lg) {
-  .editor-page { flex-direction: column; }
-  .editor-sidebar { width: 100%; flex-direction: row; flex-wrap: wrap; overflow-x: auto; }
+// ===== 移动端样式 =====
+.mobile-bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: $color-bg-white;
+  border-top: 1px solid $color-border;
+  z-index: 100;
+  padding: 4px 8px env(safe-area-inset-bottom, 4px);
+}
+
+.mobile-tools {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 4px 0;
+}
+
+.mobile-tool-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: $radius-sm;
+  background: transparent;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background $transition-fast;
+
+  &:active { background: rgba(0, 0, 0, 0.08); }
+  &.active { background: rgba($color-primary, 0.12); }
+  &:disabled { opacity: 0.3; }
+}
+
+.mobile-divider {
+  width: 1px;
+  height: 24px;
+  background: $color-border;
+  margin: 0 2px;
+}
+
+.mobile-color-bar {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: 4px 0;
+  border-top: 1px solid $color-border-light;
+
+  .mobile-color-swatch {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid $color-border;
+  }
+
+  .mobile-color-hex {
+    font-size: $font-size-xs;
+    font-family: monospace;
+    color: $color-text-secondary;
+  }
+
+  .mobile-zoom {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+
+    button {
+      width: 28px;
+      height: 28px;
+      border: 1px solid $color-border;
+      border-radius: $radius-sm;
+      background: $color-bg-white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    span {
+      font-size: $font-size-xs;
+      min-width: 36px;
+      text-align: center;
+    }
+  }
+}
+
+.mobile-drawer-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 200;
+}
+
+.mobile-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 280px;
+  background: $color-bg;
+  z-index: 201;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+
+  .drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $spacing-md;
+    background: $color-bg-white;
+    font-weight: 600;
+    font-size: $font-size-md;
+    border-bottom: 1px solid $color-border;
+    padding-top: calc($spacing-md + env(safe-area-inset-top, 0px));
+
+    .drawer-close {
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: $radius-sm;
+      background: transparent;
+      font-size: 18px;
+      cursor: pointer;
+      &:hover { background: rgba(0, 0, 0, 0.06); }
+    }
+  }
+
+  .drawer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: $spacing-sm;
+  }
+}
+
+// ===== 过渡动画 =====
+.slide-enter-active,
+.slide-leave-active {
+  transition: opacity 0.25s ease;
+}
+.slide-enter-from,
+.slide-leave-to {
+  opacity: 0;
+}
+
+.slide-right-enter-active,
+.slide-right-leave-active {
+  transition: transform 0.25s ease;
+}
+.slide-right-enter-from,
+.slide-right-leave-to {
+  transform: translateX(100%);
 }
 </style>

@@ -27,50 +27,61 @@
       <n-slider v-model:value="store.colorCount" :min="8" :max="256" :step="8" />
     </div>
 
-    <!-- 亮度 -->
-    <div class="param-group">
-      <label class="param-label">亮度: {{ store.brightness > 0 ? '+' : '' }}{{ store.brightness }}%</label>
-      <n-slider v-model:value="store.brightness" :min="-50" :max="50" :step="1" />
-    </div>
-
-    <!-- 对比度 -->
-    <div class="param-group">
-      <label class="param-label">对比度: {{ store.contrast > 0 ? '+' : '' }}{{ store.contrast }}%</label>
-      <n-slider v-model:value="store.contrast" :min="-50" :max="50" :step="1" />
-    </div>
-
-    <!-- 饱和度 -->
-    <div class="param-group">
-      <label class="param-label">饱和度: {{ store.saturation > 0 ? '+' : '' }}{{ store.saturation }}%</label>
-      <n-slider v-model:value="store.saturation" :min="-50" :max="50" :step="1" />
-    </div>
-
-    <!-- 模糊 -->
-    <div class="param-group">
-      <label class="param-label">模糊: {{ store.blur }}px</label>
-      <n-slider v-model:value="store.blur" :min="0" :max="10" :step="0.5" />
-    </div>
-
-    <!-- 抖动算法 -->
-    <div class="param-group">
-      <label class="param-label">抖动算法</label>
-      <n-radio-group v-model:value="store.dither" size="small">
-        <n-radio-button value="none">无</n-radio-button>
-        <n-radio-button value="floyd-steinberg">F-S</n-radio-button>
-        <n-radio-button value="atkinson">Atkinson</n-radio-button>
-      </n-radio-group>
-    </div>
-
     <!-- 调色盘品牌 -->
     <div class="param-group">
       <label class="param-label">调色盘品牌</label>
       <n-select
-        v-model:value="store.palette"
+        :value="store.palette"
         :options="paletteOptions"
+        @update:value="(v: PaletteBrand) => store.palette = v"
       />
     </div>
 
-    <!-- 转换按钮 -->
+    <!-- 高级参数折叠 -->
+    <div class="advanced-toggle" @click="showAdvanced = !showAdvanced">
+      <span class="toggle-label">高级参数</span>
+      <span class="toggle-arrow" :class="{ open: showAdvanced }">▸</span>
+    </div>
+
+    <Transition name="fold">
+      <div v-show="showAdvanced" class="advanced-body">
+        <!-- 亮度 -->
+        <div class="param-group">
+          <label class="param-label">亮度: {{ store.brightness > 0 ? '+' : '' }}{{ store.brightness }}%</label>
+          <n-slider v-model:value="store.brightness" :min="-50" :max="50" :step="1" />
+        </div>
+
+        <!-- 对比度 -->
+        <div class="param-group">
+          <label class="param-label">对比度: {{ store.contrast > 0 ? '+' : '' }}{{ store.contrast }}%</label>
+          <n-slider v-model:value="store.contrast" :min="-50" :max="50" :step="1" />
+        </div>
+
+        <!-- 饱和度 -->
+        <div class="param-group">
+          <label class="param-label">饱和度: {{ store.saturation > 0 ? '+' : '' }}{{ store.saturation }}%</label>
+          <n-slider v-model:value="store.saturation" :min="-50" :max="50" :step="1" />
+        </div>
+
+        <!-- 模糊 -->
+        <div class="param-group">
+          <label class="param-label">模糊: {{ store.blur }}px</label>
+          <n-slider v-model:value="store.blur" :min="0" :max="10" :step="0.5" />
+        </div>
+
+        <!-- 抖动算法 -->
+        <div class="param-group">
+          <label class="param-label">抖动算法</label>
+          <n-radio-group v-model:value="store.dither" size="small">
+            <n-radio-button value="none">无</n-radio-button>
+            <n-radio-button value="floyd-steinberg">F-S</n-radio-button>
+            <n-radio-button value="atkinson">Atkinson</n-radio-button>
+          </n-radio-group>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- 开始转换按钮 -->
     <n-button
       type="primary"
       block
@@ -83,7 +94,6 @@
       🎨 开始转换
     </n-button>
 
-    <!-- 重置按钮 -->
     <n-button
       block
       size="small"
@@ -103,16 +113,18 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { NSelect, NSlider, NRadioGroup, NRadioButton, NButton } from 'naive-ui'
 import { useProjectStore } from '@/stores/project'
 import { GRID_SIZES } from '@/core/converter'
-import type { GridSize, PaletteBrand } from '@/types'
+import type { PaletteBrand } from '@/types'
 
 defineEmits<{
   (e: 'convert'): void
 }>()
 
 const store = useProjectStore()
+const showAdvanced = ref(false)
 
 const gridOptions = GRID_SIZES
   .filter(s => s.name !== 'heart')
@@ -138,14 +150,14 @@ function handleGridChange(name: string) {
 .parameter-panel {
   background: $color-bg-white;
   border-radius: $radius-lg;
-  padding: $spacing-lg;
+  padding: $spacing-md;
   box-shadow: $shadow-sm;
 }
 
 .panel-title {
-  font-size: $font-size-lg;
+  font-size: $font-size-sm;
   font-weight: 600;
-  margin-bottom: $spacing-lg;
+  margin-bottom: $spacing-md;
   padding-bottom: $spacing-md;
   border-bottom: 1px solid $color-border-light;
 }
@@ -162,8 +174,59 @@ function handleGridChange(name: string) {
   }
 }
 
+.advanced-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-sm 0;
+  margin-bottom: $spacing-md;
+  cursor: pointer;
+  border-top: 1px solid $color-border-light;
+  transition: color $transition-fast;
+
+  &:hover { color: $color-primary; }
+
+  .toggle-label {
+    font-size: $font-size-sm;
+    color: $color-text-muted;
+  }
+
+  .toggle-arrow {
+    font-size: $font-size-xs;
+    transition: transform $transition-fast;
+    color: $color-text-muted;
+
+    &.open { transform: rotate(90deg); }
+  }
+}
+
+.fold-enter-active,
+.fold-leave-active {
+  transition: all 0.25s ease;
+  overflow: hidden;
+}
+
+.fold-enter-from,
+.fold-leave-to {
+  opacity: 0;
+  max-height: 0;
+  margin-bottom: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.fold-enter-to,
+.fold-leave-from {
+  opacity: 1;
+  max-height: 500px;
+}
+
+.advanced-body {
+  .param-group:last-child { margin-bottom: 0; }
+}
+
 .convert-btn {
-  margin-top: $spacing-lg;
+  margin-top: $spacing-md;
   height: 48px;
   font-size: $font-size-md;
 }

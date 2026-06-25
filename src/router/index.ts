@@ -1,7 +1,6 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 
 const router = createRouter({
-  // Hash 模式兼容 GitHub Pages，刷新不会 404
   history: createWebHashHistory(),
   routes: [
     {
