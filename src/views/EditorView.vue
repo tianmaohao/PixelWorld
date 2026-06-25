@@ -29,6 +29,9 @@
         :highlight-color="highlightColor"
         :zoom="zoom"
         @update:zoom="(v: number) => zoom = v"
+        @zoom-in="zoomIn"
+        @zoom-out="zoomOut"
+        @size-change="handleSizeChange"
         @color-picked="handleColorPicked"
         @modified="saveHistory"
       />
@@ -42,37 +45,6 @@
         @select-color="selectedColor = $event"
       />
 
-      <!-- 画布尺寸自定义 -->
-      <div class="info-panel">
-        <h4 class="info-title">📐 画布尺寸</h4>
-        <div class="size-inputs">
-          <div class="size-row">
-            <n-input-number
-              v-model:value="canvasW"
-              :min="1" :max="200" :step="1" size="small"
-              placeholder="宽"
-              @update:value="handleSizeChange"
-            />
-            <span class="size-x">×</span>
-            <n-input-number
-              v-model:value="canvasH"
-              :min="1" :max="200" :step="1" size="small"
-              placeholder="高"
-              @update:value="handleSizeChange"
-            />
-          </div>
-          <div class="size-presets">
-            <button
-              v-for="preset in sizePresets"
-              :key="preset.label"
-              class="preset-btn"
-              :class="{ active: canvasW === preset.w && canvasH === preset.h }"
-              @click="applyPreset(preset.w, preset.h)"
-            >{{ preset.label }}</button>
-          </div>
-        </div>
-      </div>
-
       <!-- 作品信息 -->
       <div v-if="store.result" class="info-panel">
         <h4 class="info-title">📊 作品信息</h4>
@@ -81,6 +53,38 @@
           <span class="info-value">{{ store.editorPixels.size }}颗</span>
           <span class="info-label">颜色数:</span>
           <span class="info-value">{{ usedColorCount }}种</span>
+        </div>
+      </div>
+
+      <!-- 画布设置 -->
+      <div class="canvas-settings">
+        <h4 class="settings-title">⚙️ 画布设置</h4>
+
+        <!-- 尺寸 -->
+        <div class="setting-row">
+          <span class="setting-label">尺寸</span>
+          <div class="size-inputs">
+            <input type="number" class="size-input" :value="store.editorWidth" min="1" max="200"
+              @change="handleWidthChange" />
+            <span class="size-x">×</span>
+            <input type="number" class="size-input" :value="store.editorHeight" min="1" max="200"
+              @change="handleHeightChange" />
+          </div>
+        </div>
+
+        <!-- 背景 -->
+        <div class="setting-row">
+          <span class="setting-label">背景</span>
+          <div class="bg-options">
+            <button
+              v-for="bg in bgOptions"
+              :key="bg.name"
+              class="bg-btn"
+              :class="[bg.name, { active: store.canvasBg === bg.name }]"
+              :title="bg.label"
+              @click="store.canvasBg = bg.name"
+            />
+          </div>
         </div>
       </div>
 
@@ -116,8 +120,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { NModal, NInputNumber, useMessage } from 'naive-ui'
+import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
+import { NModal, useMessage } from 'naive-ui'
 import { useRouter } from 'vue-router'
 import { useProjectStore } from '@/stores/project'
 import type { EditorTool } from '@/types'
@@ -138,38 +142,6 @@ const showGrid = ref(true)
 const highlightColor = ref<string | null>(null)
 const zoom = ref(1)
 const showExportModal = ref(false)
-
-// 画布尺寸自定义
-const canvasW = ref(store.editorWidth)
-const canvasH = ref(store.editorHeight)
-
-const sizePresets = [
-  { label: '29×29', w: 29, h: 29 },
-  { label: '58×58', w: 58, h: 58 },
-  { label: '116×116', w: 116, h: 116 },
-  { label: '16×16', w: 16, h: 16 },
-  { label: '32×32', w: 32, h: 32 },
-  { label: '48×48', w: 48, h: 48 },
-  { label: '64×64', w: 64, h: 64 },
-]
-
-function handleSizeChange() {
-  const w = Math.max(1, Math.min(200, canvasW.value || 29))
-  const h = Math.max(1, Math.min(200, canvasH.value || 29))
-  canvasW.value = w
-  canvasH.value = h
-  store.editorWidth = w
-  store.editorHeight = h
-  store.compositeLayers()
-}
-
-function applyPreset(w: number, h: number) {
-  canvasW.value = w
-  canvasH.value = h
-  store.editorWidth = w
-  store.editorHeight = h
-  store.compositeLayers()
-}
 
 // 历史记录
 const history = ref<Map<string, string>[]>([])
@@ -255,6 +227,32 @@ function toggleHighlight() {
 
 function zoomIn() { zoom.value = Math.min(3, zoom.value + 0.25) }
 function zoomOut() { zoom.value = Math.max(0.25, zoom.value - 0.25) }
+
+const bgOptions = [
+  { name: 'checker', label: '棋盘格' },
+  { name: 'white', label: '白色' },
+  { name: 'light', label: '浅灰' },
+  { name: 'dark', label: '深灰' },
+  { name: 'black', label: '黑色' },
+]
+
+function handleWidthChange(e: Event) {
+  const val = parseInt((e.target as HTMLInputElement).value)
+  if (val >= 1 && val <= 200) {
+    store.editorWidth = val
+    store.compositeLayers()
+    nextTick(() => canvasRef.value?.fitToView())
+  }
+}
+
+function handleHeightChange(e: Event) {
+  const val = parseInt((e.target as HTMLInputElement).value)
+  if (val >= 1 && val <= 200) {
+    store.editorHeight = val
+    store.compositeLayers()
+    nextTick(() => canvasRef.value?.fitToView())
+  }
+}
 
 function buildResult() {
   return {
@@ -407,6 +405,91 @@ function handleExportPDF() {
 }
 
 .quick-export { margin-top: auto; }
+
+.canvas-settings {
+  background: $color-bg-white;
+  border-radius: $radius-lg;
+  padding: $spacing-md;
+  box-shadow: $shadow-sm;
+
+  .settings-title {
+    font-size: $font-size-sm;
+    font-weight: 600;
+    margin-bottom: $spacing-md;
+    padding-bottom: $spacing-sm;
+    border-bottom: 1px solid $color-border-light;
+  }
+
+  .setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: $spacing-sm;
+
+    &:last-child { margin-bottom: 0; }
+  }
+
+  .setting-label {
+    font-size: $font-size-sm;
+    color: $color-text-secondary;
+    flex-shrink: 0;
+  }
+
+  .size-inputs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    .size-input {
+      width: 48px;
+      height: 28px;
+      border: 1px solid $color-border;
+      border-radius: $radius-sm;
+      text-align: center;
+      font-size: $font-size-sm;
+      font-family: monospace;
+      padding: 0;
+      outline: none;
+
+      &:focus { border-color: $color-primary; }
+      &::-webkit-inner-spin-button,
+      &::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+      -moz-appearance: textfield;
+    }
+
+    .size-x {
+      color: $color-text-muted;
+      font-size: $font-size-sm;
+    }
+  }
+
+  .bg-options {
+    display: flex;
+    gap: 4px;
+  }
+
+  .bg-btn {
+    width: 24px;
+    height: 24px;
+    border: 2px solid transparent;
+    border-radius: 5px;
+    padding: 0;
+    cursor: pointer;
+    transition: border-color $transition-fast;
+
+    &.checker {
+      background: conic-gradient(#e0e0e0 25%, #fff 25% 50%, #e0e0e0 50% 75%, #fff 75%);
+      background-size: 6px 6px;
+    }
+    &.white { background: #fff; border-color: $color-border-light; }
+    &.light { background: #f0f0f0; }
+    &.dark { background: #666; }
+    &.black { background: #1a1a1a; }
+
+    &.active { border-color: $color-primary; }
+    &:hover:not(.active) { border-color: $color-text-muted; }
+  }
+}
 
 .export-options { display: flex; flex-direction: column; gap: $spacing-sm; }
 

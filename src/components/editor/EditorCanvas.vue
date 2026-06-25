@@ -16,24 +16,16 @@
       :style="canvasStyle"
     />
 
-    <!-- 覆盖层：始终贴在容器四角，不受画布缩放平移影响 -->
-    <div style="position:absolute;inset:0;pointer-events:none;z-index:10;">
-      <div v-if="hoverCoord" style="position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,0.7);color:#fff;padding:3px 10px;border-radius:6px;font-size:12px;font-family:monospace;">
-        X: {{ hoverCoord.x }}, Y: {{ hoverCoord.y }}
-      </div>
-
-      <div style="position:absolute;bottom:8px;right:44px;background:rgba(0,0,0,0.7);color:#fff;padding:3px 10px;border-radius:6px;font-size:12px;font-family:monospace;">
-        {{ Math.round(zoom * 100) }}%
-      </div>
-
+    <!-- 居中按钮 - 始终在右下角 -->
+    <div style="position:absolute;bottom:8px;right:8px;z-index:10;pointer-events:auto;">
       <button
-        style="position:absolute;bottom:8px;right:8px;width:32px;height:32px;border:none;border-radius:10px;background:rgba(0,0,0,0.6);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;pointer-events:auto;"
+        style="width:32px;height:32px;border:none;border-radius:10px;background:rgba(0,0,0,0.6);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;"
         title="居中 (双击画布)"
         @click="fitToView"
         @mouseenter="($event.target as HTMLElement).style.background='rgba(0,0,0,0.85)'"
         @mouseleave="($event.target as HTMLElement).style.background='rgba(0,0,0,0.6)'"
       >
-        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
           <circle cx="10" cy="10" r="7" stroke="white" stroke-width="1.5"/>
           <circle cx="10" cy="10" r="2" fill="white"/>
           <line x1="10" y1="1" x2="10" y2="4.5" stroke="white" stroke-width="1.2"/>
@@ -171,12 +163,21 @@ function drawCanvas() {
   canvas.width = w * PIXEL_SIZE
   canvas.height = h * PIXEL_SIZE
 
-  // 棋盘格背景
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      ctx.fillStyle = (x + y) % 2 === 0 ? '#FFFFFF' : '#F0F0F0'
-      ctx.fillRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE)
+  // 背景
+  if (store.canvasBg === 'checker') {
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        ctx.fillStyle = (x + y) % 2 === 0 ? '#FFFFFF' : '#F0F0F0'
+        ctx.fillRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE)
+      }
     }
+  } else {
+    const bgColor = store.canvasBg === 'white' ? '#FFFFFF'
+      : store.canvasBg === 'light' ? '#F0F0F0'
+      : store.canvasBg === 'dark' ? '#666666'
+      : '#1A1A1A'
+    ctx.fillStyle = bgColor
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
   }
 
   // 图层渲染
@@ -212,7 +213,6 @@ function drawCanvas() {
           ctx.fill()
         }
       } else {
-        // 方形豆子
         if (props.highlightColor && color === props.highlightColor) {
           ctx.fillStyle = color
           ctx.fillRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE)
@@ -250,22 +250,18 @@ function drawCanvas() {
 
 // ==================== 坐标转换 ====================
 
-/** 屏幕坐标 → 画布像素坐标（已考虑缩放和平移） */
 function screenToPixel(e: MouseEvent): { x: number; y: number } | null {
   const container = containerRef.value
   const canvas = canvasRef.value
   if (!container || !canvas) return null
 
   const containerRect = container.getBoundingClientRect()
-  // 鼠标相对于容器左上角的偏移
   const mouseX = e.clientX - containerRect.left
   const mouseY = e.clientY - containerRect.top
 
-  // 逆变换：先减去平移，再除以缩放，得到 canvas 像素坐标
   const canvasX = (mouseX - panX.value) / props.zoom
   const canvasY = (mouseY - panY.value) / props.zoom
 
-  // canvas 像素坐标 → 网格坐标
   const gridX = Math.floor(canvasX / PIXEL_SIZE)
   const gridY = Math.floor(canvasY / PIXEL_SIZE)
 
@@ -277,7 +273,6 @@ function screenToPixel(e: MouseEvent): { x: number; y: number } | null {
 
 // ==================== 缩放 ====================
 
-/** 以鼠标位置为中心缩放 */
 function zoomAtPoint(newZoom: number, e: MouseEvent) {
   const container = containerRef.value
   if (!container) return
@@ -286,26 +281,21 @@ function zoomAtPoint(newZoom: number, e: MouseEvent) {
   const mouseX = e.clientX - rect.left
   const mouseY = e.clientY - rect.top
 
-  // 缩放前鼠标在画布上的位置
   const canvasX = (mouseX - panX.value) / props.zoom
   const canvasY = (mouseY - panY.value) / props.zoom
 
-  // 应用新缩放
   const clamped = Math.max(0.1, Math.min(10, newZoom))
   emit('update:zoom', clamped)
 
-  // 缩放后调整平移，使鼠标下的画布点保持不动
   panX.value = mouseX - canvasX * clamped
   panY.value = mouseY - canvasY * clamped
 }
 
 function handleWheel(e: WheelEvent) {
   if (e.ctrlKey || e.metaKey) {
-    // Ctrl + 滚轮 → 缩放
     const delta = e.deltaY > 0 ? -0.1 : 0.1
     zoomAtPoint(props.zoom * (1 + delta), e)
   } else {
-    // 普通滚轮 → 平移
     panX.value -= e.deltaX
     panY.value -= e.deltaY
   }
@@ -448,7 +438,6 @@ let firstFitDone = false
 
 watch(() => [store.editorPixels.size, store.editorWidth, store.editorHeight], () => {
   drawCanvas()
-  // 内容变化时重新适配（仅在首次加载后）
   if (firstFitDone) {
     nextTick(fitToView)
   }
@@ -458,13 +447,13 @@ watch(() => props.showGrid, () => drawCanvas())
 watch(() => props.highlightColor, () => drawCanvas())
 watch(() => props.zoom, () => drawCanvas())
 watch(() => store.beadShape, () => drawCanvas())
+watch(() => store.canvasBg, () => drawCanvas())
 
 onMounted(() => {
   drawCanvas()
   window.addEventListener('keydown', handleKeyDown)
   window.addEventListener('keyup', handleKeyUp)
 
-  // 等容器尺寸稳定后适配
   const tryFit = () => {
     const container = containerRef.value
     if (!container || container.clientWidth === 0) {

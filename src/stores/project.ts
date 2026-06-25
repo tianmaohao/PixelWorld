@@ -41,6 +41,7 @@ export const useProjectStore = defineStore('project', () => {
   const editorPixels = ref<Map<string, string>>(new Map())
   const editorWidth = ref(29)
   const editorHeight = ref(29)
+  const canvasBg = ref<string>('checker')
 
   // ===== 图层 =====
   const layers = ref<Layer[]>([createDefaultLayer()])
@@ -186,7 +187,7 @@ export const useProjectStore = defineStore('project', () => {
     // 状态
     gridSize, colorCount, brightness, contrast, saturation, blur, dither, palette, beadShape,
     sourceImage, sourceFileName, result, isConverting,
-    editorPixels, editorWidth, editorHeight,
+    editorPixels, editorWidth, editorHeight, canvasBg,
     // 图层
     layers, activeLayerId, activeLayer,
     // 计算属性
