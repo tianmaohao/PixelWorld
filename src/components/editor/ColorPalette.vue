@@ -2,15 +2,18 @@
   <div class="bead-tray">
     <div class="tray-header">
       <h3 class="tray-title">🫘 豆豆盘</h3>
-      <div class="shape-toggle">
-        <button
-          class="shape-btn" :class="{ active: store.beadShape === 'round' }" title="圆形豆"
-          @click="store.beadShape = 'round'"
-        >⚪</button>
-        <button
-          class="shape-btn" :class="{ active: store.beadShape === 'square' }" title="方形豆"
-          @click="store.beadShape = 'square'"
-        >⬛</button>
+      <div class="tray-actions">
+        <button class="action-btn" title="用量统计" @click="showStats = true">📊</button>
+        <div class="shape-toggle">
+          <button
+            class="shape-btn" :class="{ active: store.beadShape === 'round' }" title="圆形豆"
+            @click="store.beadShape = 'round'"
+          >⚪</button>
+          <button
+            class="shape-btn" :class="{ active: store.beadShape === 'square' }" title="方形豆"
+            @click="store.beadShape = 'square'"
+          >⬛</button>
+        </div>
       </div>
     </div>
 
@@ -89,6 +92,30 @@
         @change="handleHexInput"
       />
     </div>
+
+    <!-- 用量统计弹窗 -->
+    <div v-if="showStats" class="stats-overlay" @click.self="showStats = false">
+      <div class="stats-modal">
+        <div class="stats-header">
+          <h4>📊 豆豆用量统计</h4>
+          <button class="stats-close" @click="showStats = false">✕</button>
+        </div>
+        <div class="stats-total">
+          共 <strong>{{ totalBeads }}</strong> 颗 · <strong>{{ statsList.length }}</strong> 种颜色
+        </div>
+        <div class="stats-list">
+          <div v-for="item in statsList" :key="item.hex" class="stats-item">
+            <div class="stats-swatch" :class="store.beadShape" :style="{ background: item.hex }" />
+            <span class="stats-hex">{{ item.hex }}</span>
+            <div class="stats-bar-wrap">
+              <div class="stats-bar" :style="{ width: (item.count / maxCount * 100) + '%' }" />
+            </div>
+            <span class="stats-count">{{ item.count }}颗</span>
+            <span class="stats-pct">{{ item.percent }}%</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -110,6 +137,26 @@ defineEmits<{
 const store = useProjectStore()
 const activeCategory = ref('全部')
 const colorCount = ref(48)
+const showStats = ref(false)
+
+// 统计数据
+const statsList = computed(() => {
+  const countMap = new Map<string, number>()
+  for (const [, hex] of store.editorPixels) {
+    const key = hex.toUpperCase()
+    countMap.set(key, (countMap.get(key) || 0) + 1)
+  }
+  const total = store.editorPixels.size || 1
+  return Array.from(countMap.entries())
+    .map(([hex, count]) => ({
+      hex, count,
+      percent: Math.round(count / total * 100),
+    }))
+    .sort((a, b) => b.count - a.count)
+})
+
+const totalBeads = computed(() => store.editorPixels.size)
+const maxCount = computed(() => statsList.value.length > 0 ? statsList.value[0].count : 1)
 
 const colorCountOptions = [24, 48, 72, 96, 120, 144, 168, 192, 216, 240]
 
@@ -267,10 +314,22 @@ const DEFAULT_COLORS: BeadColor[] = [
 
 // 当前调色盘的所有颜色
 const allBeads = computed<BeadColor[]>(() => {
-  if (store.palette === 'none') {
-    return generatePalette(colorCount.value)
+  const base = store.palette === 'none'
+    ? generatePalette(colorCount.value)
+    : getPalette(store.palette)
+
+  // 把编辑器中用到但不在调色盘里的颜色也加进去
+  const baseHexSet = new Set(base.map(b => b.hex.toUpperCase()))
+  const extras: BeadColor[] = []
+  for (const [, hex] of store.editorPixels) {
+    const key = hex.toUpperCase()
+    if (!baseHexSet.has(key)) {
+      extras.push({ code: 'E' + (extras.length + 1), name: key, hex, brand: 'none' })
+      baseHexSet.add(key)
+    }
   }
-  return getPalette(store.palette)
+
+  return [...base, ...extras]
 })
 
 // 当前选中颜色的使用数量
@@ -293,6 +352,7 @@ const beadCounts = computed(() => {
 const categories = computed(() => {
   const cats = [
     { name: '全部', color: '#888' },
+    { name: '已用', color: '#F43F5E' },
     { name: '肤', color: '#FFDAB9' },
     { name: '红', color: '#E4002B' },
     { name: '橙', color: '#FF8C00' },
@@ -326,6 +386,9 @@ function hexToHsl(hex: string): { h: number; s: number; l: number } {
 // 按色系过滤（基于色相）
 const filteredBeads = computed(() => {
   if (activeCategory.value === '全部') return allBeads.value
+  if (activeCategory.value === '已用') {
+    return allBeads.value.filter(bead => beadCounts.value.get(bead.hex.toUpperCase()))
+  }
 
   return allBeads.value.filter(bead => {
     const { h, s, l } = hexToHsl(bead.hex.toUpperCase())
@@ -381,6 +444,30 @@ function handleHexInput(e: Event) {
   justify-content: space-between;
   margin-bottom: $spacing-sm;
   flex-shrink: 0;
+}
+
+.tray-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.action-btn {
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: $radius-sm;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background $transition-fast;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.06);
+  }
 }
 
 .tray-title {
@@ -633,6 +720,121 @@ function handleHexInput(e: Event) {
       outline: none;
       border-color: $color-primary;
     }
+  }
+}
+
+.stats-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stats-modal {
+  background: $color-bg-white;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  width: 400px;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: $shadow-lg;
+}
+
+.stats-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+
+  h4 { font-size: $font-size-md; font-weight: 600; }
+
+  .stats-close {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: $radius-sm;
+    background: transparent;
+    cursor: pointer;
+    font-size: 16px;
+    color: $color-text-muted;
+
+    &:hover { background: rgba(0, 0, 0, 0.06); }
+  }
+}
+
+.stats-total {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-md;
+  padding-bottom: $spacing-sm;
+  border-bottom: 1px solid $color-border-light;
+
+  strong { color: $color-primary; }
+}
+
+.stats-list {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.stats-item {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: 6px 0;
+  border-bottom: 1px solid $color-border-light;
+
+  &:last-child { border-bottom: none; }
+
+  .stats-swatch {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+
+    &.round { border-radius: 50%; }
+    &.square { border-radius: 3px; }
+  }
+
+  .stats-hex {
+    font-size: $font-size-xs;
+    font-family: monospace;
+    color: $color-text-muted;
+    min-width: 70px;
+  }
+
+  .stats-bar-wrap {
+    flex: 1;
+    height: 8px;
+    background: $color-bg;
+    border-radius: 4px;
+    overflow: hidden;
+
+    .stats-bar {
+      height: 100%;
+      background: $color-primary;
+      border-radius: 4px;
+      transition: width $transition-normal;
+    }
+  }
+
+  .stats-count {
+    font-size: $font-size-xs;
+    font-weight: 500;
+    min-width: 40px;
+    text-align: right;
+  }
+
+  .stats-pct {
+    font-size: $font-size-xs;
+    color: $color-text-muted;
+    min-width: 32px;
+    text-align: right;
   }
 }
 </style>
