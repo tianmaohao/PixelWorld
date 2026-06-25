@@ -113,25 +113,52 @@ const colorCount = ref(48)
 
 const colorCountOptions = [24, 48, 72, 96, 120, 144, 168, 192, 216, 240]
 
-// 生成 N 色均匀色板（HSV 均匀分布）
+// 生成 N 色均匀色板（HSV 均匀分布，覆盖多种饱和度和明度）
 function generatePalette(n: number): BeadColor[] {
   const colors: BeadColor[] = []
-  // 黑白灰基础色
-  const basics = [
-    '#FFFFFF', '#F5F5F5', '#E0E0E0', '#C0C0C0', '#808080', '#404040', '#1A1A1A',
-  ]
-  for (const hex of basics) {
+  const usedHex = new Set<string>()
+
+  function addColor(hex: string) {
+    const key = hex.toUpperCase()
+    if (usedHex.has(key)) return
+    usedHex.add(key)
     colors.push({ code: `C${colors.length + 1}`, name: hex, hex, brand: 'none' })
   }
-  // 用 HSV 均匀生成剩余颜色
-  const remaining = n - colors.length
-  for (let i = 0; i < remaining; i++) {
-    const hue = (i / remaining) * 360
-    const sat = 70 + (i % 3) * 10 // 70%, 80%, 90% 交替
-    const light = 40 + (i % 4) * 15 // 40%, 55%, 70%, 85% 交替
-    const hex = hsvToHex(hue, sat, light)
-    colors.push({ code: `C${colors.length + 1}`, name: hex, hex, brand: 'none' })
+
+  // 1. 黑白灰阶梯
+  for (let i = 0; i <= 8; i++) {
+    const v = Math.round(i * 255 / 8)
+    addColor(`#${v.toString(16).padStart(2, '0').repeat(3)}`)
   }
+
+  // 2. 按色相 × 饱和度 × 明度 组合生成
+  const hues = 12 // 12 个色相方向
+  const sats = [25, 45, 65, 85] // 4 档饱和度
+  const lights = [30, 50, 70, 85] // 4 档明度
+
+  for (let hi = 0; hi < hues; hi++) {
+    const hue = (hi / hues) * 360
+    for (const sat of sats) {
+      for (const light of lights) {
+        if (colors.length >= n) return colors
+        addColor(hsvToHex(hue, sat, light))
+      }
+    }
+  }
+
+  // 3. 补充：暖色区域加密（肤色、棕色、橙色需要更多过渡）
+  const warmHues = [0, 10, 15, 20, 25, 30, 35, 40]
+  const warmSats = [15, 30, 50, 70]
+  const warmLights = [50, 60, 70, 80]
+  for (const hue of warmHues) {
+    for (const sat of warmSats) {
+      for (const light of warmLights) {
+        if (colors.length >= n) return colors
+        addColor(hsvToHex(hue, sat, light))
+      }
+    }
+  }
+
   return colors.slice(0, n)
 }
 
