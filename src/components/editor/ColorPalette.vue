@@ -134,7 +134,31 @@ function generatePalette(n: number): BeadColor[] {
     add(`#${v.toString(16).padStart(2, '0').repeat(3)}`)
   }
 
-  // ===== 2. 按轮次生成，每轮覆盖所有色相 =====
+  // ===== 2. 肤色系（15级，覆盖所有人种）=====
+  // 暖黄底色，从白皙 → 小麦 → 深棕，都是黄橙调
+  const skinTones = [
+    { h: 20, s: 20, l: 92 },  // 极浅（白皙）
+    { h: 18, s: 25, l: 87 },  // 浅白
+    { h: 22, s: 30, l: 82 },  // 瓷白
+    { h: 20, s: 35, l: 77 },  // 浅肤色
+    { h: 22, s: 40, l: 72 },  // 暖肤色
+    { h: 20, s: 45, l: 67 },  // 自然肤色
+    { h: 18, s: 50, l: 62 },  // 小麦色
+    { h: 20, s: 50, l: 55 },  // 蜜色
+    { h: 18, s: 48, l: 48 },  // 橄榄色
+    { h: 20, s: 45, l: 42 },  // 浅棕
+    { h: 18, s: 50, l: 37 },  // 中棕
+    { h: 20, s: 55, l: 32 },  // 深棕
+    { h: 18, s: 50, l: 27 },  // 暗棕
+    { h: 20, s: 45, l: 22 },  // 深黑棕
+    { h: 18, s: 40, l: 17 },  // 极深
+  ]
+  for (const t of skinTones) {
+    if (colors.length >= n) break
+    add(hsvToHex(t.h, t.s, t.l))
+  }
+
+  // ===== 3. 按轮次生成，每轮覆盖所有色相 =====
   // 第 1 轮：高饱和高明度（鲜艳色）
   for (const hue of hues) {
     if (colors.length >= n) break
@@ -308,8 +332,8 @@ const filteredBeads = computed(() => {
 
     // 灰色：饱和度极低
     if (activeCategory.value === '灰') return s < 0.1
-    // 肤色：暖色相(10-40°) + 适中饱和度(10-50%) + 中高亮度(55-85%)
-    if (activeCategory.value === '肤') return h >= 10 && h <= 45 && s >= 0.1 && s <= 0.55 && l >= 0.55 && l <= 0.85
+    // 肤色：暖色相(10-45°) + 饱和度(10-60%) + 亮度范围宽(15%-92%)，覆盖所有人种
+    if (activeCategory.value === '肤') return h >= 10 && h <= 45 && s >= 0.1 && s <= 0.6 && l >= 0.15 && l <= 0.92
 
     // 有色系：饱和度 > 0.1 才算
     if (s < 0.1) return false
