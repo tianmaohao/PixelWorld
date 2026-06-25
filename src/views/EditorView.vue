@@ -329,7 +329,7 @@ function handleExportPDF() {
   flex-direction: column;
   gap: $spacing-sm;
   min-height: 0;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .info-panel {

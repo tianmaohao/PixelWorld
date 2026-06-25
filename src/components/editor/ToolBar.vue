@@ -130,6 +130,9 @@ const tools = [
   background: $color-bg-white;
   border-radius: $radius-lg;
   box-shadow: $shadow-sm;
+  overflow-y: auto;
+  min-height: 0;
+  flex-shrink: 0;
 }
 
 .tool-section {
