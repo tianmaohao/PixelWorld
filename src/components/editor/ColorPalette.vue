@@ -264,8 +264,8 @@ const filteredBeads = computed(() => {
 
     // 灰色：饱和度极低
     if (activeCategory.value === '灰') return s < 0.1
-    // 肤色：低饱和暖色
-    if (activeCategory.value === '肤') return s < 0.4 && h < 50 && l > 0.6
+    // 肤色：暖色相(10-40°) + 适中饱和度(10-50%) + 中高亮度(55-85%)
+    if (activeCategory.value === '肤') return h >= 10 && h <= 45 && s >= 0.1 && s <= 0.55 && l >= 0.55 && l <= 0.85
 
     // 有色系：饱和度 > 0.1 才算
     if (s < 0.1) return false
