@@ -255,6 +255,12 @@ function handleExportPDF() {
   position: relative;
   min-width: 0;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+:deep(.editor-canvas-container) {
+  flex: 1 !important;
 }
 
 .editor-sidebar {
@@ -263,13 +269,8 @@ function handleExportPDF() {
   display: flex;
   flex-direction: column;
   gap: $spacing-sm;
-  overflow-y: auto;
   min-height: 0;
-  padding-right: 2px;
-
-  > * {
-    flex-shrink: 0;
-  }
+  overflow: hidden;
 }
 
 .info-panel {

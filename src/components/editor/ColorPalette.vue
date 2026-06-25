@@ -370,7 +370,9 @@ function handleHexInput(e: Event) {
   box-shadow: $shadow-sm;
   display: flex;
   flex-direction: column;
-  max-height: 520px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .tray-header {
