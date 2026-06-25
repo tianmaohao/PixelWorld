@@ -113,50 +113,55 @@ const colorCount = ref(48)
 
 const colorCountOptions = [24, 48, 72, 96, 120, 144, 168, 192, 216, 240]
 
-// 生成 N 色均匀色板（HSV 均匀分布，覆盖多种饱和度和明度）
+// 生成 N 色均匀色板
 function generatePalette(n: number): BeadColor[] {
-  const colors: BeadColor[] = []
   const usedHex = new Set<string>()
+  const colors: BeadColor[] = []
 
-  function addColor(hex: string) {
+  function add(hex: string) {
     const key = hex.toUpperCase()
     if (usedHex.has(key)) return
     usedHex.add(key)
     colors.push({ code: `C${colors.length + 1}`, name: hex, hex, brand: 'none' })
   }
 
-  // 1. 黑白灰阶梯
-  for (let i = 0; i <= 8; i++) {
-    const v = Math.round(i * 255 / 8)
-    addColor(`#${v.toString(16).padStart(2, '0').repeat(3)}`)
+  // ===== 1. 灰阶 12 级 =====
+  for (let i = 0; i <= 11; i++) {
+    const v = Math.round(i * 255 / 11)
+    add(`#${v.toString(16).padStart(2, '0').repeat(3)}`)
   }
 
-  // 2. 按色相 × 饱和度 × 明度 组合生成
-  const hues = 12 // 12 个色相方向
-  const sats = [25, 45, 65, 85] // 4 档饱和度
-  const lights = [30, 50, 70, 85] // 4 档明度
+  // ===== 2. 核心色：16 色相 × 5 明度 = 80 色 =====
+  // 覆盖红/橙/黄/黄绿/绿/青/蓝/紫 等所有方向
+  const coreHues = [0, 15, 30, 45, 60, 80, 100, 120, 150, 180, 210, 240, 270, 300, 330, 345]
+  const coreLights = [35, 50, 65, 80, 90]
+  for (const hue of coreHues) {
+    for (const light of coreLights) {
+      if (colors.length >= n) return colors
+      add(hsvToHex(hue, 80, light))
+    }
+  }
 
-  for (let hi = 0; hi < hues; hi++) {
-    const hue = (hi / hues) * 360
-    for (const sat of sats) {
-      for (const light of lights) {
+  // ===== 3. 补充低饱和色（肤色/粉/米/淡彩）=====
+  const softHues = [0, 10, 20, 30, 40, 50, 200, 220, 280, 320]
+  const softSats = [15, 30, 50]
+  const softLights = [60, 70, 80, 88]
+  for (const hue of softHues) {
+    for (const sat of softSats) {
+      for (const light of softLights) {
         if (colors.length >= n) return colors
-        addColor(hsvToHex(hue, sat, light))
+        add(hsvToHex(hue, sat, light))
       }
     }
   }
 
-  // 3. 补充：暖色区域加密（肤色、棕色、橙色需要更多过渡）
-  const warmHues = [0, 10, 15, 20, 25, 30, 35, 40]
-  const warmSats = [15, 30, 50, 70]
-  const warmLights = [50, 60, 70, 80]
-  for (const hue of warmHues) {
-    for (const sat of warmSats) {
-      for (const light of warmLights) {
-        if (colors.length >= n) return colors
-        addColor(hsvToHex(hue, sat, light))
-      }
-    }
+  // ===== 4. 补充深色（深红/深蓝/深绿/深紫/深棕）=====
+  const darkHues = [0, 20, 40, 100, 150, 210, 260, 300, 340]
+  for (const hue of darkHues) {
+    if (colors.length >= n) return colors
+    add(hsvToHex(hue, 70, 20))
+    if (colors.length >= n) return colors
+    add(hsvToHex(hue, 50, 15))
   }
 
   return colors.slice(0, n)
