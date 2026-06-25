@@ -23,6 +23,20 @@
       </div>
     </div>
 
+    <!-- 颜色数量选择 -->
+    <div class="count-selector">
+      <label class="count-label">色数</label>
+      <div class="count-options">
+        <button
+          v-for="n in colorCountOptions"
+          :key="n"
+          class="count-btn"
+          :class="{ active: colorCount === n }"
+          @click="colorCount = n"
+        >{{ n }}</button>
+      </div>
+    </div>
+
     <!-- 色系分类标签 -->
     <div class="category-tabs">
       <button
@@ -95,6 +109,44 @@ defineEmits<{
 
 const store = useProjectStore()
 const activeCategory = ref('全部')
+const colorCount = ref(48)
+
+const colorCountOptions = [24, 48, 72, 96, 120, 144, 168, 192, 216, 240]
+
+// 生成 N 色均匀色板（HSV 均匀分布）
+function generatePalette(n: number): BeadColor[] {
+  const colors: BeadColor[] = []
+  // 黑白灰基础色
+  const basics = [
+    '#FFFFFF', '#F5F5F5', '#E0E0E0', '#C0C0C0', '#808080', '#404040', '#1A1A1A',
+  ]
+  for (const hex of basics) {
+    colors.push({ code: `C${colors.length + 1}`, name: hex, hex, brand: 'none' })
+  }
+  // 用 HSV 均匀生成剩余颜色
+  const remaining = n - colors.length
+  for (let i = 0; i < remaining; i++) {
+    const hue = (i / remaining) * 360
+    const sat = 70 + (i % 3) * 10 // 70%, 80%, 90% 交替
+    const light = 40 + (i % 4) * 15 // 40%, 55%, 70%, 85% 交替
+    const hex = hsvToHex(hue, sat, light)
+    colors.push({ code: `C${colors.length + 1}`, name: hex, hex, brand: 'none' })
+  }
+  return colors.slice(0, n)
+}
+
+function hsvToHex(h: number, s: number, l: number): string {
+  s /= 100; l /= 100
+  const c = (1 - Math.abs(2 * l - 1)) * s
+  const x = c * (1 - Math.abs((h / 60) % 2 - 1))
+  const m = l - c / 2
+  let r = 0, g = 0, b = 0
+  if (h < 60) { r = c; g = x } else if (h < 120) { r = x; g = c }
+  else if (h < 180) { g = c; b = x } else if (h < 240) { g = x; b = c }
+  else if (h < 300) { r = x; b = c } else { r = c; b = x }
+  const toHex = (v: number) => Math.round((v + m) * 255).toString(16).padStart(2, '0')
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`
+}
 
 // 纯色模式默认色板
 const DEFAULT_COLORS: BeadColor[] = [
@@ -148,18 +200,7 @@ const DEFAULT_COLORS: BeadColor[] = [
 // 当前调色盘的所有颜色
 const allBeads = computed<BeadColor[]>(() => {
   if (store.palette === 'none') {
-    // 纯色模式：默认色板 + 编辑器中额外使用的颜色
-    const colorMap = new Map<string, BeadColor>()
-    for (const bead of DEFAULT_COLORS) {
-      colorMap.set(bead.hex.toUpperCase(), bead)
-    }
-    for (const [, hex] of store.editorPixels) {
-      const key = hex.toUpperCase()
-      if (!colorMap.has(key)) {
-        colorMap.set(key, { code: 'C' + (colorMap.size + 1), name: hex, hex, brand: 'none' })
-      }
-    }
-    return Array.from(colorMap.values())
+    return generatePalette(colorCount.value)
   }
   return getPalette(store.palette)
 })
@@ -318,6 +359,50 @@ function handleHexInput(e: Event) {
     .current-count {
       font-size: $font-size-xs;
       color: $color-text-muted;
+    }
+  }
+}
+
+.count-selector {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-sm;
+  flex-shrink: 0;
+
+  .count-label {
+    font-size: $font-size-xs;
+    color: $color-text-muted;
+    flex-shrink: 0;
+  }
+
+  .count-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+  }
+
+  .count-btn {
+    padding: 2px 6px;
+    border: 1px solid $color-border;
+    border-radius: $radius-sm;
+    background: $color-bg-white;
+    cursor: pointer;
+    font-size: 10px;
+    color: $color-text-secondary;
+    transition: all $transition-fast;
+    line-height: 1.4;
+
+    &:hover {
+      border-color: $color-primary;
+      color: $color-primary;
+    }
+
+    &.active {
+      background: $color-primary;
+      border-color: $color-primary;
+      color: white;
+      font-weight: 500;
     }
   }
 }
